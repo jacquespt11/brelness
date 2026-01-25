@@ -3,13 +3,13 @@ import type { Reservation } from '../types/reservation';
 
 interface ReservationItemProps {
     reservation: Reservation;
-    onDelete: (id: number) => void;
+    onDelete: (id: string) => void;
 }
 
 /**
  * Composant qui affiche une réservation individuelle
  */
-const ReservationItem = ({ reservation, onDelete }: ReservationItemProps) => {
+const ReservationItem: React.FC<ReservationItemProps> = ({ reservation, onDelete }) => {
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('fr-FR');
     };
@@ -19,20 +19,20 @@ const ReservationItem = ({ reservation, onDelete }: ReservationItemProps) => {
             <div className="flex justify-between items-start">
                 <div>
                     <h3 className="font-bold text-lg text-gray-800 dark:text-white">
-                        {reservation.productName}
+                        {reservation.produit}
                     </h3>
                     <div className="flex items-center gap-2 mt-2">
                         <span className="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded">
-                            {reservation.productType}
+                            {reservation.produitType}
                         </span>
                         <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
-                            Qté: {reservation.quantity}
+                            Qté: {reservation.quantite}
                         </span>
-                        <span className={`px-2 py-1 text-xs rounded ${reservation.status === 'en_attente'
+                        <span className={`px-2 py-1 text-xs rounded ${reservation.statut === 'en_attente'
                             ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
                             : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                             }`}>
-                            {reservation.status}
+                            {reservation.statut}
                         </span>
                     </div>
                 </div>
@@ -49,16 +49,16 @@ const ReservationItem = ({ reservation, onDelete }: ReservationItemProps) => {
             <div className="mt-3 text-gray-600 dark:text-gray-300">
                 <div className="flex items-center gap-2">
                     <span className="font-medium">Client:</span>
-                    <span>{reservation.customerName}</span>
+                    <span>{reservation.nomClient}</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                     <span className="font-medium">Email:</span>
-                    <span>{reservation.customerEmail}</span>
+                    <span>{reservation.email}</span>
                 </div>
-                {reservation.deliveryDate && (
+                {reservation.dateLivraisonSouhaitee && (
                     <div className="flex items-center gap-2 mt-1">
                         <span className="font-medium">Livraison:</span>
-                        <span>{formatDate(reservation.deliveryDate)}</span>
+                        <span>{formatDate(reservation.dateLivraisonSouhaitee)}</span>
                     </div>
                 )}
                 {reservation.notes && (
@@ -68,7 +68,7 @@ const ReservationItem = ({ reservation, onDelete }: ReservationItemProps) => {
                     </div>
                 )}
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    Créé le {formatDate(reservation.createdAt)}
+                    Créé le {formatDate(reservation.dateCreation)}
                 </div>
             </div>
         </div>

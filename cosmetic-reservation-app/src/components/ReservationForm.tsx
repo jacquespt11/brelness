@@ -1,252 +1,628 @@
-// src/components/ReservationForm.tsx
-import { useState, type ChangeEvent, type FormEvent } from 'react';
-import type { Reservation } from '../types/reservation';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useReservationStore } from '../state/reservationStore';
+import {
+    User,
+    Phone,
+    Mail,
+    Package,
+    Calendar,
+    FileText,
+    Plus,
+    Minus,
+    Check
+} from 'lucide-react';
 
 interface ReservationFormProps {
-    onAddReservation: (reservation: Reservation) => void;
+    onSuccess?: () => void;
 }
 
 /**
- * Composant formulaire pour créer une nouvelle réservation
- * Gère la saisie des informations produit et client
+ * Composant formulaire de réservation amélioré avec animations
+ * et expérience utilisateur optimisée
  */
-const ReservationForm = ({ onAddReservation }: ReservationFormProps) => {
-    // État initial du formulaire
+const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
+    const addReservation = useReservationStore((state) => state.addReservation);
+
     const [formData, setFormData] = useState({
-        productName: '',
-        productType: 'soin_visage' as const,
-        quantity: 1,
-        customerName: '',
-        customerEmail: '',
-        deliveryDate: '',
+        nomClient: '',
+        telephone: '',
+        email: '',
+        produit: '',
+        produitType: 'soin_visage',
+        quantite: 1,
+        dateLivraisonSouhaitee: '',
         notes: ''
     });
 
-    // Types de produits cosmétiques disponibles
-    const productTypes = [
-        { value: 'soin_visage', label: 'Soin visage' },
-        { value: 'maquillage', label: 'Maquillage' },
-        { value: 'parfum', label: 'Parfum' },
-        { value: 'soin_corps', label: 'Soin corps' },
-        { value: 'cheveux', label: 'Produits cheveux' }
-    ] as const;
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [currentStep, setCurrentStep] = useState(0);
 
-    /**
-     * Gère le changement dans les champs du formulaire
-     * @param e - Événement de changement
-     */
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const productTypes = [
+        { value: 'soin_visage', label: 'Soin visage', prix: 45.90, icon: '✨' },
+        { value: 'maquillage', label: 'Maquillage', prix: 32.50, icon: '💄' },
+        { value: 'parfum', label: 'Parfum', prix: 89.99, icon: '🌸' },
+        { value: 'soin_corps', label: 'Soin corps', prix: 28.75, icon: '🧴' },
+        { value: 'cheveux', label: 'Produits cheveux', prix: 24.50, icon: '🧖‍♀️' }
+    ];
+
+    const steps = [
+        { title: 'Client', icon: <User className="w-4 h-4" /> },
+        { title: 'Produit', icon: <Package className="w-4 h-4" /> },
+        { title: 'Livraison', icon: <Calendar className="w-4 h-4" /> },
+        { title: 'Confirmation', icon: <Check className="w-4 h-4" /> }
+    ];
+
+    const validateField = (name: string, value: string) => {
+        switch (name) {
+            case 'nomClient':
+                if (!value.trim()) return 'Le nom est requis';
+                if (value.length < 2) return 'Nom trop court';
+                break;
+            case 'telephone':
+                if (!value.trim()) return 'Le téléphone est requis';
+                if (!/^[0-9]{10}$/.test(value.replace(/\s/g, ''))) return 'Numéro invalide (10 chiffres)';
+                break;
+            case 'email':
+                if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Email invalide';
+                break;
+            case 'produit':
+                if (!value.trim()) return 'Le produit est requis';
+                break;
+        }
+        return '';
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
+
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'number' ? parseInt(value) || 1 : value
+            [name]: type === 'number' ? Math.max(1, Math.min(100, parseInt(value) || 1)) : value
+        }));
+
+        // Validation en temps réel
+        const error = validateField(name, value);
+        setErrors(prev => ({
+            ...prev,
+            [name]: error
         }));
     };
 
-    /**
-     * Soumet le formulaire et valide les données
-     * @param e - Événement de soumission
-     */
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
+    const handleQuantityChange = (delta: number) => {
+        const newQuantity = Math.max(1, Math.min(100, formData.quantite + delta));
+        setFormData(prev => ({
+            ...prev,
+            quantite: newQuantity
+        }));
+    };
 
-        // Validation simple
-        if (!formData.productName.trim() || !formData.customerName.trim() || !formData.customerEmail.trim()) {
-            alert('Veuillez remplir tous les champs obligatoires');
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        // Validation finale
+        const newErrors: Record<string, string> = {};
+        Object.entries(formData).forEach(([key, value]) => {
+            if (['nomClient', 'telephone', 'produit'].includes(key)) {
+                const error = validateField(key, value as string);
+                if (error) newErrors[key] = error;
+            }
+        });
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            setIsSubmitting(false);
             return;
         }
 
-        // Crée une nouvelle réservation avec ID unique
-        const newReservation: Reservation = {
-            ...formData,
-            id: Date.now(), // ID unique basé sur le timestamp
-            status: 'en_attente',
-            createdAt: new Date().toISOString()
-        };
+        try {
+            await addReservation(formData);
 
-        // Passe la réservation au composant parent
-        onAddReservation(newReservation);
-
-        // Réinitialise le formulaire
-        setFormData({
-            productName: '',
-            productType: 'soin_visage',
-            quantity: 1,
-            customerName: '',
-            customerEmail: '',
-            deliveryDate: '',
-            notes: ''
-        });
-
-        alert('Réservation créée avec succès !');
+            // Feedback visuel
+            if (onSuccess) {
+                onSuccess();
+            } else {
+                // Réinitialisation
+                setFormData({
+                    nomClient: '',
+                    telephone: '',
+                    email: '',
+                    produit: '',
+                    produitType: 'soin_visage',
+                    quantite: 1,
+                    dateLivraisonSouhaitee: '',
+                    notes: ''
+                });
+                setErrors({});
+            }
+        } catch (error) {
+            console.error('Erreur lors de la création:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
+    const prixActuel = productTypes.find(p => p.value === formData.produitType)?.prix || 0;
+    const totalEstime = prixActuel * formData.quantite;
+
+    const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
+    const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
+
     return (
-        <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
-                📝 Nouvelle réservation
-            </h2>
+        <motion.form
+            onSubmit={handleSubmit}
+            className="space-y-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+        >
+            {/* Indicateur d'étapes */}
+            <div className="relative">
+                <div className="flex justify-between mb-8">
+                    {steps.map((step, index) => (
+                        <div key={index} className="flex flex-col items-center relative z-10">
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: index * 0.1 }}
+                                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${index <= currentStep
+                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
+                                    }`}
+                            >
+                                {step.icon}
+                            </motion.div>
+                            <span className={`text-sm font-medium ${index <= currentStep
+                                ? 'text-purple-600 dark:text-purple-400'
+                                : 'text-gray-500 dark:text-gray-400'
+                                }`}>
+                                {step.title}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+                <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700">
+                    <motion.div
+                        initial={{ width: '0%' }}
+                        animate={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
+                        className="h-full bg-gradient-to-r from-purple-600 to-pink-600"
+                    />
+                </div>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Section informations produit */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                        Informations produit
-                    </h3>
+            <AnimatePresence mode="wait">
+                {currentStep === 0 && (
+                    <motion.div
+                        key="step1"
+                        initial={{ x: 20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: -20, opacity: 0 }}
+                        className="space-y-6"
+                    >
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                            <User className="w-6 h-6 text-purple-600" />
+                            Informations client
+                        </h3>
 
-                    {/* Nom du produit */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Nom du produit *
-                        </label>
-                        <input
-                            type="text"
-                            name="productName"
-                            value={formData.productName}
-                            onChange={handleChange}
-                            required
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                            placeholder="Ex: Crème hydratante anti-âge"
-                        />
-                    </div>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.1 }}
+                            >
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                    <User className="w-4 h-4" />
+                                    Nom complet *
+                                </label>
+                                <input
+                                    type="text"
+                                    name="nomClient"
+                                    value={formData.nomClient}
+                                    onChange={handleChange}
+                                    required
+                                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all ${errors.nomClient
+                                        ? 'border-red-500 dark:border-red-500'
+                                        : 'border-gray-300 dark:border-gray-600'
+                                        }`}
+                                    placeholder="Marie Dupont"
+                                />
+                                {errors.nomClient && (
+                                    <motion.p
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="text-red-500 text-sm mt-2"
+                                    >
+                                        {errors.nomClient}
+                                    </motion.p>
+                                )}
+                            </motion.div>
 
-                    {/* Type de produit et quantité */}
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                            >
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                    <Phone className="w-4 h-4" />
+                                    Téléphone *
+                                </label>
+                                <input
+                                    type="tel"
+                                    name="telephone"
+                                    value={formData.telephone}
+                                    onChange={handleChange}
+                                    required
+                                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all ${errors.telephone
+                                        ? 'border-red-500 dark:border-red-500'
+                                        : 'border-gray-300 dark:border-gray-600'
+                                        }`}
+                                    placeholder="06 12 34 56 78"
+                                />
+                                {errors.telephone && (
+                                    <motion.p
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="text-red-500 text-sm mt-2"
+                                    >
+                                        {errors.telephone}
+                                    </motion.p>
+                                )}
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.3 }}
+                                className="md:col-span-2"
+                            >
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                    <Mail className="w-4 h-4" />
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all ${errors.email
+                                        ? 'border-red-500 dark:border-red-500'
+                                        : 'border-gray-300 dark:border-gray-600'
+                                        }`}
+                                    placeholder="marie@exemple.com"
+                                />
+                                {errors.email && (
+                                    <motion.p
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="text-red-500 text-sm mt-2"
+                                    >
+                                        {errors.email}
+                                    </motion.p>
+                                )}
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {currentStep === 1 && (
+                    <motion.div
+                        key="step2"
+                        initial={{ x: 20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: -20, opacity: 0 }}
+                        className="space-y-6"
+                    >
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                            <Package className="w-6 h-6 text-purple-600" />
+                            Informations produit
+                        </h3>
+
+                        <motion.div
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            className="space-y-4"
+                        >
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                 Type de produit
                             </label>
-                            <select
-                                name="productType"
-                                value={formData.productType}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                            >
-                                {productTypes.map(type => (
-                                    <option key={type.value} value={type.value}>
-                                        {type.label}
-                                    </option>
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                {productTypes.map((type) => (
+                                    <motion.button
+                                        key={type.value}
+                                        type="button"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => setFormData(prev => ({
+                                            ...prev,
+                                            produitType: type.value
+                                        }))}
+                                        className={`p-4 rounded-xl border-2 transition-all ${formData.produitType === type.value
+                                            ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20'
+                                            : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                                            }`}
+                                    >
+                                        <div className="text-2xl mb-2">{type.icon}</div>
+                                        <div className="text-sm font-medium text-gray-800 dark:text-white">
+                                            {type.label}
+                                        </div>
+                                        <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                            {type.prix}€
+                                        </div>
+                                    </motion.button>
                                 ))}
-                            </select>
+                            </div>
+                        </motion.div>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.1 }}
+                            >
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Produit *
+                                </label>
+                                <input
+                                    type="text"
+                                    name="produit"
+                                    value={formData.produit}
+                                    onChange={handleChange}
+                                    required
+                                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all ${errors.produit
+                                        ? 'border-red-500 dark:border-red-500'
+                                        : 'border-gray-300 dark:border-gray-600'
+                                        }`}
+                                    placeholder="Crème hydratante anti-âge"
+                                />
+                                {errors.produit && (
+                                    <motion.p
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="text-red-500 text-sm mt-2"
+                                    >
+                                        {errors.produit}
+                                    </motion.p>
+                                )}
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                            >
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                    Quantité *
+                                </label>
+                                <div className="flex items-center space-x-4">
+                                    <motion.button
+                                        type="button"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => handleQuantityChange(-1)}
+                                        className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600"
+                                    >
+                                        <Minus className="w-4 h-4" />
+                                    </motion.button>
+
+                                    <div className="flex-1 text-center">
+                                        <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                                            {formData.quantite}
+                                        </div>
+                                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                                            unité{formData.quantite > 1 ? 's' : ''}
+                                        </div>
+                                    </div>
+
+                                    <motion.button
+                                        type="button"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => handleQuantityChange(1)}
+                                        className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-600"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </motion.button>
+                                </div>
+                            </motion.div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Quantité
+                        {/* Estimation totale */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200 dark:border-purple-800"
+                        >
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">Estimation totale</div>
+                                    <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                                        {totalEstime.toFixed(2)}€
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                        {formData.quantite} × {prixActuel.toFixed(2)}€
+                                    </div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                        {productTypes.find(p => p.value === formData.produitType)?.label}
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+
+                {currentStep === 2 && (
+                    <motion.div
+                        key="step3"
+                        initial={{ x: 20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: -20, opacity: 0 }}
+                        className="space-y-6"
+                    >
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                            <Calendar className="w-6 h-6 text-purple-600" />
+                            Informations de livraison
+                        </h3>
+
+                        <motion.div
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                        >
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                Date de livraison souhaitée
                             </label>
-                            <input
-                                type="number"
-                                name="quantity"
-                                min="1"
-                                max="10"
-                                value={formData.quantity}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                            />
-                        </div>
-                    </div>
-                </div>
+                            <div className="relative">
+                                <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="date"
+                                    name="dateLivraisonSouhaitee"
+                                    value={formData.dateLivraisonSouhaitee}
+                                    onChange={handleChange}
+                                    min={new Date().toISOString().split('T')[0]}
+                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                />
+                            </div>
+                        </motion.div>
 
-                {/* Section informations client */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                        Informations client
-                    </h3>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Nom complet *
+                        <motion.div
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                        >
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                <FileText className="w-4 h-4" />
+                                Notes supplémentaires
                             </label>
-                            <input
-                                type="text"
-                                name="customerName"
-                                value={formData.customerName}
+                            <textarea
+                                name="notes"
+                                value={formData.notes}
                                 onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                placeholder="Ex: Marie Dupont"
+                                rows={4}
+                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                placeholder="Allergies, préférences particulières, instructions spéciales..."
                             />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                Ces informations seront visibles par votre équipe
+                            </p>
+                        </motion.div>
+                    </motion.div>
+                )}
+
+                {currentStep === 3 && (
+                    <motion.div
+                        key="step4"
+                        initial={{ x: 20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: -20, opacity: 0 }}
+                        className="space-y-6"
+                    >
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                            <Check className="w-6 h-6 text-green-600" />
+                            Récapitulatif
+                        </h3>
+
+                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Client</h4>
+                                    <p className="text-gray-800 dark:text-white">{formData.nomClient}</p>
+                                    <p className="text-gray-600 dark:text-gray-400">{formData.telephone}</p>
+                                    {formData.email && (
+                                        <p className="text-gray-600 dark:text-gray-400">{formData.email}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Produit</h4>
+                                    <p className="text-gray-800 dark:text-white">{formData.produit}</p>
+                                    <p className="text-gray-600 dark:text-gray-400">
+                                        {productTypes.find(p => p.value === formData.produitType)?.label} • {formData.quantite} unité{formData.quantite > 1 ? 's' : ''}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Livraison</h4>
+                                    {formData.dateLivraisonSouhaitee ? (
+                                        <p className="text-gray-800 dark:text-white">
+                                            {new Date(formData.dateLivraisonSouhaitee).toLocaleDateString('fr-FR')}
+                                        </p>
+                                    ) : (
+                                        <p className="text-gray-500 dark:text-gray-400">Non spécifiée</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Total</h4>
+                                    <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                        {totalEstime.toFixed(2)}€
+                                    </p>
+                                </div>
+                            </div>
+
+                            {formData.notes && (
+                                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Notes</h4>
+                                    <p className="text-gray-600 dark:text-gray-400 italic">{formData.notes}</p>
+                                </div>
+                            )}
                         </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Email *
-                            </label>
-                            <input
-                                type="email"
-                                name="customerEmail"
-                                value={formData.customerEmail}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                                placeholder="exemple@email.com"
-                            />
-                        </div>
-                    </div>
-                </div>
+            {/* Navigation entre étapes */}
+            <div className="flex justify-between pt-8 border-t border-gray-200 dark:border-gray-700">
+                <motion.button
+                    type="button"
+                    onClick={prevStep}
+                    disabled={currentStep === 0}
+                    whileHover={{ x: -5 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-colors ${currentStep === 0
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                >
+                    <span>←</span>
+                    <span>Précédent</span>
+                </motion.button>
 
-                {/* Section livraison */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                        Livraison
-                    </h3>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Date de livraison souhaitée
-                        </label>
-                        <input
-                            type="date"
-                            name="deliveryDate"
-                            value={formData.deliveryDate}
-                            onChange={handleChange}
-                            min={new Date().toISOString().split('T')[0]}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Notes supplémentaires
-                        </label>
-                        <textarea
-                            name="notes"
-                            value={formData.notes}
-                            onChange={handleChange}
-                            rows={3}
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                            placeholder="Allergies, préférences particulières..."
-                        />
-                    </div>
-                </div>
-
-                {/* Boutons d'action */}
-                <div className="flex justify-end space-x-4 pt-6">
-                    <button
+                {currentStep < steps.length - 1 ? (
+                    <motion.button
                         type="button"
-                        onClick={() => setFormData({
-                            productName: '',
-                            productType: 'soin_visage',
-                            quantity: 1,
-                            customerName: '',
-                            customerEmail: '',
-                            deliveryDate: '',
-                            notes: ''
-                        })}
-                        className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        onClick={nextStep}
+                        whileHover={{ x: 5 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all"
                     >
-                        Réinitialiser
-                    </button>
-                    <button
+                        <span>Suivant</span>
+                        <span>→</span>
+                    </motion.button>
+                ) : (
+                    <motion.button
                         type="submit"
-                        className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all transform hover:-translate-y-0.5"
+                        disabled={isSubmitting}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Créer la réservation
-                    </button>
-                </div>
-            </form>
-        </div>
+                        {isSubmitting ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <span>Création en cours...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Check className="w-5 h-5" />
+                                <span>Confirmer la réservation</span>
+                            </>
+                        )}
+                    </motion.button>
+                )}
+            </div>
+        </motion.form>
     );
 };
 

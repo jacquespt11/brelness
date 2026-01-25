@@ -1,11 +1,11 @@
 // src/components/admin/RecentReservations.tsx
 import React from 'react';
-import type { Reservation } from '../../types/reservation';
+import { type Reservation, ReservationStatus } from '../../types/reservation';
 
 interface RecentReservationsProps {
     reservations: Reservation[];
-    onViewDetails: (id: number) => void;
-    onUpdateStatus: (id: number, status: string) => void;
+    onViewDetails: (id: string) => void;
+    onUpdateStatus: (id: string, status: ReservationStatus) => void;
 }
 
 /**
@@ -20,12 +20,12 @@ const RecentReservations: React.FC<RecentReservationsProps> = ({
     // Limiter aux 5 dernières réservations
     const recentReservations = reservations.slice(0, 5);
 
-    const getStatusBadge = (status: string) => {
+    const getStatusBadge = (status: ReservationStatus) => {
         const statusConfig: Record<string, { color: string; label: string }> = {
-            en_attente: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300', label: 'En attente' },
-            confirmee: { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', label: 'Confirmée' },
-            livree: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', label: 'Livrée' },
-            annulee: { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', label: 'Annulée' },
+            [ReservationStatus.PENDING]: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300', label: 'En attente' },
+            [ReservationStatus.CONFIRMED]: { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', label: 'Confirmée' },
+            [ReservationStatus.DELIVERED]: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', label: 'Livrée' },
+            [ReservationStatus.CANCELLED]: { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', label: 'Annulée' },
         };
 
         const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800', label: status };
@@ -86,26 +86,26 @@ const RecentReservations: React.FC<RecentReservationsProps> = ({
                                     <td className="py-4">
                                         <div>
                                             <p className="font-medium text-gray-800 dark:text-white">
-                                                {reservation.customerName}
+                                                {reservation.nomClient}
                                             </p>
                                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                {reservation.customerEmail}
+                                                {reservation.email}
                                             </p>
                                         </div>
                                     </td>
                                     <td className="py-4">
                                         <p className="text-gray-700 dark:text-gray-300">
-                                            {reservation.productName}
+                                            {reservation.produit}
                                         </p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                                            {reservation.quantity} unité(s)
+                                            {reservation.quantite} unité(s)
                                         </p>
                                     </td>
                                     <td className="py-4">
-                                        {getStatusBadge(reservation.status)}
+                                        {getStatusBadge(reservation.statut)}
                                     </td>
                                     <td className="py-4 text-gray-600 dark:text-gray-400">
-                                        {new Date(reservation.createdAt).toLocaleDateString('fr-FR')}
+                                        {new Date(reservation.dateCreation).toLocaleDateString('fr-FR')}
                                     </td>
                                     <td className="py-4">
                                         <div className="flex space-x-2">
@@ -116,14 +116,14 @@ const RecentReservations: React.FC<RecentReservationsProps> = ({
                                                 Voir
                                             </button>
                                             <select
-                                                value={reservation.status}
-                                                onChange={(e) => onUpdateStatus(reservation.id, e.target.value)}
+                                                value={reservation.statut}
+                                                onChange={(e) => onUpdateStatus(reservation.id, e.target.value as ReservationStatus)}
                                                 className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 rounded-lg border-none focus:ring-2 focus:ring-purple-500"
                                             >
-                                                <option value="en_attente">En attente</option>
-                                                <option value="confirmee">Confirmée</option>
-                                                <option value="livree">Livrée</option>
-                                                <option value="annulee">Annulée</option>
+                                                <option value={ReservationStatus.PENDING}>En attente</option>
+                                                <option value={ReservationStatus.CONFIRMED}>Confirmée</option>
+                                                <option value={ReservationStatus.DELIVERED}>Livrée</option>
+                                                <option value={ReservationStatus.CANCELLED}>Annulée</option>
                                             </select>
                                         </div>
                                     </td>
