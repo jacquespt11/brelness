@@ -23,7 +23,25 @@
       "node"
     ],
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@/shared/*": [
+        "src/shared/*"
+      ],
+      "@/features/*": [
+        "src/features/*"
+      ],
+      "@/core/*": [
+        "src/core/*"
+      ],
+      "@/app/*": [
+        "src/app/*"
+      ]
+    }
   },
   "include": [
     "src"
