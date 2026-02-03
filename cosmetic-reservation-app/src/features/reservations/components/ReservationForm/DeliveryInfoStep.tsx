@@ -1,16 +1,18 @@
 // src/features/reservations/components/ReservationForm/DeliveryInfoStep.tsx
+
 import { Calendar, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Input } from '@/shared/components/ui';
+import type { CreateReservationData } from '../../types/reservation.types';
+import type { Source } from '@/shared/types/common.types';
 
 interface DeliveryInfoStepProps {
-    formData: any;
+    formData: CreateReservationData;
     errors: Record<string, string>;
-    onChange: (name: string, value: string) => void;
+    onChange: (name: keyof CreateReservationData, value: string) => void;
 }
 
 export function DeliveryInfoStep({ formData, errors, onChange }: DeliveryInfoStepProps) {
-    const sources = [
+    const sources: { value: Source; label: string }[] = [
         { value: 'DIRECT', label: 'Direct Site' },
         { value: 'FACEBOOK', label: 'Facebook' },
         { value: 'INSTAGRAM', label: 'Instagram' },
@@ -44,7 +46,7 @@ export function DeliveryInfoStep({ formData, errors, onChange }: DeliveryInfoSte
                         <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                             type="date"
-                            value={formData.preferredDeliveryDate}
+                            value={formData.preferredDeliveryDate || ''}
                             onChange={(e) => onChange('preferredDeliveryDate', e.target.value)}
                             min={new Date().toISOString().split('T')[0]}
                             className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:text-white transition-all"
@@ -58,7 +60,7 @@ export function DeliveryInfoStep({ formData, errors, onChange }: DeliveryInfoSte
                     </label>
                     <select
                         value={formData.source}
-                        onChange={(e) => onChange('source', e.target.value)}
+                        onChange={(e) => onChange('source', e.target.value as Source)}
                         className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:text-white transition-all"
                     >
                         {sources.map(source => (
@@ -72,7 +74,7 @@ export function DeliveryInfoStep({ formData, errors, onChange }: DeliveryInfoSte
                         <FileText size={16} /> Notes supplémentaires
                     </label>
                     <textarea
-                        value={formData.notes}
+                        value={formData.notes || ''}
                         onChange={(e) => onChange('notes', e.target.value)}
                         rows={4}
                         placeholder="Instructions spéciales, préférences, etc..."

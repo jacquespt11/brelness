@@ -1,14 +1,18 @@
 // src/features/reservations/components/ReservationForm/MultiStepReservationForm.tsx
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Button } from '@/shared/components/ui';
 import { useReservationForm } from '../../hooks/useReservationForm';
-import { useReservationStore, MOCK_PRODUCTS } from '../../store/reservationStore';
+import { useReservationStore } from '../../store/reservationStore';
+import { useProductStore } from '@/features/products/store/productStore';
 import { PersonalInfoStep } from './PersonalInfoStep';
 import { ProductSelectionStep } from './ProductSelectionStep';
 import { DeliveryInfoStep } from './DeliveryInfoStep';
 import { ConfirmationStep } from './ConfirmationStep';
 import { Check, ChevronRight, ChevronLeft } from 'lucide-react';
+import type { Product } from '@/features/products/types/product.types';
+import type { CreateReservationData } from '../../types/reservation.types';
 
 interface MultiStepReservationFormProps {
     onSuccess: () => void;
@@ -17,7 +21,10 @@ interface MultiStepReservationFormProps {
 export function MultiStepReservationForm({ onSuccess }: MultiStepReservationFormProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [availableProducts, setAvailableProducts] = useState<Product[]>([]);
+
     const addReservation = useReservationStore(state => state.addReservation);
+    const { products, fetchProducts } = useProductStore();
 
     const { formData, errors, updateField, validateStep } = useReservationForm();
 
@@ -27,6 +34,27 @@ export function MultiStepReservationForm({ onSuccess }: MultiStepReservationForm
         { title: 'Livraison', icon: '🚚' },
         { title: 'Confirmation', icon: '✅' }
     ];
+
+    // Fetch products on component mount
+    useEffect(() => {
+        const loadProducts = async () => {
+            try {
+                await fetchProducts();
+            } catch (error) {
+                console.error('Failed to load products:', error);
+            }
+        };
+
+        loadProducts();
+    }, [fetchProducts]);
+
+    // Update available products when products are loaded
+    useEffect(() => {
+        if (products.length > 0) {
+            const activeProducts = products.filter(p => p.isActive !== false);
+            setAvailableProducts(activeProducts);
+        }
+    }, [products]);
 
     const handleNext = () => {
         if (validateStep(currentStep)) {
@@ -44,7 +72,22 @@ export function MultiStepReservationForm({ onSuccess }: MultiStepReservationForm
 
         setIsSubmitting(true);
         try {
-            await addReservation(formData);
+            // Find selected product to get its details
+            const selectedProduct = availableProducts.find(p => p.id === formData.productId);
+
+            if (!selectedProduct) {
+                throw new Error('Produit sélectionné non trouvé');
+            }
+
+            // Prepare reservation data with product details
+            const reservationData: CreateReservationData = {
+                ...formData,
+                productName: selectedProduct.name,
+                productCategory: selectedProduct.category,
+                productId: selectedProduct.id,
+            };
+
+            await addReservation(reservationData);
             onSuccess();
         } catch (error) {
             console.error('Failed to create reservation:', error);
@@ -54,7 +97,7 @@ export function MultiStepReservationForm({ onSuccess }: MultiStepReservationForm
     };
 
     // Calculate total price for summary
-    const selectedProduct = MOCK_PRODUCTS.find(p => p.id === formData.productId);
+    const selectedProduct = availableProducts.find(p => p.id === formData.productId);
     const price = selectedProduct?.price || 0;
     const totalPrice = price * formData.quantity;
 
@@ -66,8 +109,8 @@ export function MultiStepReservationForm({ onSuccess }: MultiStepReservationForm
                     {steps.map((step, index) => (
                         <div key={index} className="flex flex-col items-center relative z-10">
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all duration-300 ${index <= currentStep
-                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-                                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
+                                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                                : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
                                 }`}>
                                 {index < currentStep ? <Check size={20} /> : <span>{step.icon}</span>}
                             </div>
@@ -94,7 +137,7 @@ export function MultiStepReservationForm({ onSuccess }: MultiStepReservationForm
                             key="step-0"
                             formData={formData}
                             errors={errors}
-                            onChange={updateField}
+                            onChange={(name: keyof CreateReservationData, value: any) => updateField(name, value)}
                         />
                     )}
                     {currentStep === 1 && (
@@ -102,7 +145,8 @@ export function MultiStepReservationForm({ onSuccess }: MultiStepReservationForm
                             key="step-1"
                             formData={formData}
                             errors={errors}
-                            onChange={updateField}
+                            onChange={(name: keyof CreateReservationData, value: any) => updateField(name, value)}
+                            products={availableProducts}
                         />
                     )}
                     {currentStep === 2 && (
@@ -110,13 +154,14 @@ export function MultiStepReservationForm({ onSuccess }: MultiStepReservationForm
                             key="step-2"
                             formData={formData}
                             errors={errors}
-                            onChange={updateField}
+                            onChange={(name: keyof CreateReservationData, value: any) => updateField(name, value)}
                         />
                     )}
                     {currentStep === 3 && (
                         <ConfirmationStep
                             key="step-3"
                             formData={formData}
+                            selectedProduct={selectedProduct}
                             totalPrice={totalPrice}
                         />
                     )}
@@ -130,8 +175,9 @@ export function MultiStepReservationForm({ onSuccess }: MultiStepReservationForm
                         onClick={handleBack}
                         disabled={currentStep === 0 || isSubmitting}
                         className="flex items-center"
+                        leftIcon={<ChevronLeft size={20} />}
                     >
-                        <ChevronLeft size={20} className="mr-1" /> Précédent
+                        Précédent
                     </Button>
 
                     {currentStep < steps.length - 1 ? (
@@ -140,17 +186,20 @@ export function MultiStepReservationForm({ onSuccess }: MultiStepReservationForm
                             variant="primary"
                             onClick={handleNext}
                             className="flex items-center"
+                            rightIcon={<ChevronRight size={20} />}
                         >
-                            Suivant <ChevronRight size={20} className="ml-1" />
+                            Suivant
                         </Button>
                     ) : (
                         <Button
                             type="submit"
                             variant="primary"
-                            loading={isSubmitting}
+                            isLoading={isSubmitting}
+                            disabled={!selectedProduct || isSubmitting}
+                            leftIcon={!isSubmitting && <Check size={20} />}
                             className="bg-gradient-to-r from-green-600 to-emerald-600 border-none px-8"
                         >
-                            <Check size={20} className="mr-2" /> Confirmer
+                            {isSubmitting ? 'Envoi en cours...' : 'Confirmer'}
                         </Button>
                     )}
                 </div>

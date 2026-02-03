@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Search, Filter, Home, X } from 'lucide-react';
-import { useReservationStore } from '@/features/reservations/store/reservationStore';
+import { useProductStore } from '@/features/products/store/productStore';
 import { ProductCard, CategoryFilter, type Category } from '@/features/products/components';
 import { Logo, Button, Input } from '@/shared/components/ui';
 import { ROUTES } from '@/shared/constants/routes';
@@ -16,7 +16,7 @@ import type { Product } from '@/features/products/types/product.types';
  */
 export function CatalogPage() {
     const navigate = useNavigate();
-    const products = useReservationStore((state) => state.products);
+    const products = useProductStore((state) => state.products);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
@@ -39,11 +39,11 @@ export function CatalogPage() {
 
         return [
             { id: 'all', label: 'Tous les produits', icon: '🌟', count: products.length },
-            ...uniqueCategories.map((category) => ({
+            ...uniqueCategories.map((category: string) => ({
                 id: category,
                 label: categoryMap[category]?.label || category,
                 icon: categoryMap[category]?.icon || '🌟',
-                count: products.filter((p) => p.category === category).length,
+                count: products.filter((p: Product) => p.category === category).length,
             })),
         ];
     }, [products]);
@@ -51,7 +51,7 @@ export function CatalogPage() {
     // Price statistics
     const priceStats = useMemo(() => {
         if (products.length === 0) return { min: 0, max: 100 };
-        const prices = products.map((p) => p.price);
+        const prices = products.map((p: Product) => p.price);
         return {
             min: Math.floor(Math.min(...prices)),
             max: Math.ceil(Math.max(...prices)),
@@ -61,7 +61,7 @@ export function CatalogPage() {
     // Filter products
     const filteredProducts = useMemo(
         () =>
-            products.filter((product) => {
+            products.filter((product: Product) => {
                 const matchesCategory =
                     selectedCategory === 'all' || product.category === selectedCategory;
                 const matchesSearch =
@@ -82,7 +82,7 @@ export function CatalogPage() {
             averagePrice:
                 filteredProducts.length > 0
                     ? (
-                        filteredProducts.reduce((sum, p) => sum + p.price, 0) /
+                        filteredProducts.reduce((sum: number, p: Product) => sum + p.price, 0) /
                         filteredProducts.length
                     ).toFixed(2)
                     : '0.00',
@@ -370,7 +370,7 @@ export function CatalogPage() {
                                 </motion.div>
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                                    {filteredProducts.map((product, index) => (
+                                    {filteredProducts.map((product: Product, index: number) => (
                                         <motion.div
                                             key={product.id}
                                             initial={{ y: 50, opacity: 0 }}

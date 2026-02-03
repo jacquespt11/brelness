@@ -16,6 +16,9 @@ export interface CreateReservationDTO {
     customerEmail: string;
     productId: string;
     quantity: number;
+    productName?: string;
+    productPrice: number;
+    productCategory?: string;
     preferredDeliveryDate?: string;
     notes?: string;
     source: Source;

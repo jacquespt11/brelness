@@ -1,12 +1,13 @@
 // src/features/reservations/components/ReservationForm/PersonalInfoStep.tsx
-import { Input } from '@/shared/components/ui';
-import { User, Phone, Mail } from 'lucide-react';
+
 import { motion } from 'framer-motion';
+import { User, Phone, Mail } from 'lucide-react';
+import type { CreateReservationData } from '../../types/reservation.types';
 
 interface PersonalInfoStepProps {
-    formData: any;
+    formData: CreateReservationData;
     errors: Record<string, string>;
-    onChange: (name: string, value: string) => void;
+    onChange: (name: keyof CreateReservationData, value: string) => void;
 }
 
 export function PersonalInfoStep({ formData, errors, onChange }: PersonalInfoStepProps) {
@@ -27,37 +28,58 @@ export function PersonalInfoStep({ formData, errors, onChange }: PersonalInfoSte
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-                <Input
-                    label="Nom complet *"
-                    icon={<User size={18} />}
-                    value={formData.customerName}
-                    onChange={(e) => onChange('customerName', e.target.value)}
-                    error={errors.customerName}
-                    placeholder="Marie Dupont"
-                    required
-                />
+                {/* Nom complet */}
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Nom complet *
+                    </label>
+                    <div className="relative">
+                        <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                            type="text"
+                            value={formData.customerName}
+                            onChange={(e) => onChange('customerName', e.target.value)}
+                            placeholder="Marie Dupont"
+                            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:text-white transition-all"
+                        />
+                    </div>
+                    {errors.customerName && <p className="text-red-500 text-xs mt-1">{errors.customerName}</p>}
+                </div>
 
-                <Input
-                    label="Téléphone *"
-                    icon={<Phone size={18} />}
-                    type="tel"
-                    value={formData.customerPhone}
-                    onChange={(e) => onChange('customerPhone', e.target.value)}
-                    error={errors.customerPhone}
-                    placeholder="06 12 34 56 78"
-                    required
-                />
+                {/* Téléphone */}
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Téléphone *
+                    </label>
+                    <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                            type="tel"
+                            value={formData.customerPhone}
+                            onChange={(e) => onChange('customerPhone', e.target.value)}
+                            placeholder="06 12 34 56 78"
+                            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:text-white transition-all"
+                        />
+                    </div>
+                    {errors.customerPhone && <p className="text-red-500 text-xs mt-1">{errors.customerPhone}</p>}
+                </div>
 
+                {/* Email */}
                 <div className="md:col-span-2">
-                    <Input
-                        label="Email"
-                        icon={<Mail size={18} />}
-                        type="email"
-                        value={formData.customerEmail}
-                        onChange={(e) => onChange('customerEmail', e.target.value)}
-                        error={errors.customerEmail}
-                        placeholder="marie@exemple.com"
-                    />
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        Email
+                    </label>
+                    <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                            type="email"
+                            value={formData.customerEmail}
+                            onChange={(e) => onChange('customerEmail', e.target.value)}
+                            placeholder="marie@exemple.com"
+                            className="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 dark:text-white transition-all"
+                        />
+                    </div>
+                    {errors.customerEmail && <p className="text-red-500 text-xs mt-1">{errors.customerEmail}</p>}
                 </div>
             </div>
         </motion.div>

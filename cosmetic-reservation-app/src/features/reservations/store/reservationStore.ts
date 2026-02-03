@@ -1,7 +1,6 @@
-// src/features/reservations/store/reservationStore.ts
-
 import { create } from 'zustand';
-import { v4 as uuidv4 } from 'uuid';
+import { reservationService } from '@/api/reservation.service';
+import type { CreateReservationDTO } from '../types/reservation.dto';
 import type {
     Reservation,
     CreateReservationData,
@@ -11,66 +10,6 @@ import type {
     ReservationAction,
 } from '../types/reservation.types';
 import type { ReservationStatus } from '@/shared/types/common.types';
-
-/**
- * Mock products data (temporary until backend is ready)
- */
-export const MOCK_PRODUCTS = [
-    {
-        id: 'prod_1',
-        name: 'Crème Hydratante',
-        description: 'Soin visage jour',
-        price: 45.90,
-        category: 'facial_care' as const,
-        stock: 50,
-        isActive: true,
-    },
-    {
-        id: 'prod_2',
-        name: 'Sérum Anti-âge',
-        description: 'Concentré régénérant',
-        price: 89.99,
-        category: 'facial_care' as const,
-        stock: 30,
-        isActive: true,
-    },
-    {
-        id: 'prod_3',
-        name: 'Rouge à Lèvres',
-        description: 'Mat longue tenue',
-        price: 32.50,
-        category: 'makeup' as const,
-        stock: 100,
-        isActive: true,
-    },
-    {
-        id: 'prod_4',
-        name: 'Parfum Élégance',
-        description: 'Fragrance florale',
-        price: 120.00,
-        category: 'perfume' as const,
-        stock: 25,
-        isActive: true,
-    },
-    {
-        id: 'prod_5',
-        name: 'Gel Douche Relaxant',
-        description: 'Soin corps aux huiles essentielles',
-        price: 28.75,
-        category: 'body_care' as const,
-        stock: 75,
-        isActive: true,
-    },
-    {
-        id: 'prod_6',
-        name: 'Shampoing Revitalisant',
-        description: 'Pour cheveux abîmés',
-        price: 35.00,
-        category: 'hair_care' as const,
-        stock: 40,
-        isActive: true,
-    },
-];
 
 /**
  * Reservation store interface
@@ -85,6 +24,7 @@ interface ReservationStore {
     error: string | null;
 
     // Actions
+    fetchReservations: () => Promise<void>;
     addReservation: (data: CreateReservationData) => Promise<Reservation>;
     updateReservationStatus: (id: string, status: ReservationStatus) => Promise<void>;
     updateReservation: (id: string, data: UpdateReservationData) => Promise<void>;
@@ -104,186 +44,239 @@ interface ReservationStore {
 
 /**
  * Unified Reservation Store
- * Combines functionality from both old stores
+ * Connected to real backend API
  */
 export const useReservationStore = create<ReservationStore>((set, get) => ({
-    // Initial state
-    reservations: [
-        // Mock data for demonstration
-        {
-            id: 'RES-ABC123',
-            customerName: 'Marie Dubois',
-            customerPhone: '0612345678',
-            customerEmail: 'marie@example.com',
-            productId: 'prod_1',
-            productName: 'Crème Hydratante',
-            productCategory: 'facial_care',
-            quantity: 2,
-            unitPrice: 45.90,
-            totalPrice: 91.80,
-            status: 'CONFIRMED',
-            source: 'DIRECT',
-            createdAt: '2024-01-15T10:30:00Z',
-            updatedAt: '2024-01-15T10:30:00Z',
-            confirmedAt: '2024-01-15T11:00:00Z',
-        },
-        {
-            id: 'RES-DEF456',
-            customerName: 'Sophie Martin',
-            customerPhone: '0698765432',
-            customerEmail: 'sophie@example.com',
-            productId: 'prod_2',
-            productName: 'Sérum Anti-âge',
-            productCategory: 'facial_care',
-            quantity: 1,
-            unitPrice: 89.99,
-            totalPrice: 89.99,
-            status: 'PENDING',
-            source: 'PHONE',
-            createdAt: '2024-01-16T14:20:00Z',
-            updatedAt: '2024-01-16T14:20:00Z',
-        },
-        {
-            id: 'RES-GHI789',
-            customerName: 'Julie Bernard',
-            customerPhone: '0623456789',
-            customerEmail: 'julie@example.com',
-            productId: 'prod_3',
-            productName: 'Rouge à Lèvres',
-            productCategory: 'makeup',
-            quantity: 3,
-            unitPrice: 32.50,
-            totalPrice: 97.50,
-            status: 'DELIVERED',
-            source: 'STORE',
-            createdAt: '2024-01-14T09:15:00Z',
-            updatedAt: '2024-01-14T09:15:00Z',
-            deliveredAt: '2024-01-15T16:00:00Z',
-        },
-    ],
+    reservations: [],
     filteredReservations: [],
     recentActions: [],
     filters: {},
     loading: false,
     error: null,
 
-    // Add reservation
+    // Fetch reservations from API
+    fetchReservations: async () => {
+        set({ loading: true, error: null });
+        try {
+            const response = await reservationService.getAllReservations();
+            const reservations: Reservation[] = response.data.map((res) => ({
+                id: res.id,
+                customerName: res.customerName,
+                customerPhone: res.customerPhone,
+                customerEmail: res.customerEmail,
+                productId: res.product.id,
+                productName: res.product.name,
+                productCategory: res.product.category,
+                productImage: res.product.imageUrl,
+                quantity: res.quantity,
+                unitPrice: res.unitPrice,
+                totalPrice: res.totalPrice,
+                status: res.status,
+                source: res.source,
+                createdAt: res.createdAt,
+                updatedAt: res.updatedAt,
+                confirmedAt: res.confirmedAt,
+                deliveredAt: res.deliveredAt,
+                preferredDeliveryDate: res.preferredDeliveryDate,
+                notes: res.notes,
+            }));
+
+            set((state) => ({
+                reservations,
+                filteredReservations: reservations,
+                loading: false,
+                recentActions: [
+                    {
+                        type: 'FETCH',
+                        timestamp: Date.now(),
+                        details: `Chargement de ${reservations.length} réservations`,
+                        reservationId: '', // Ajustement ici si besoin
+                    },
+                    ...state.recentActions.slice(0, 4),
+                ],
+            }));
+        } catch (error) {
+            set({
+                loading: false,
+                error: error instanceof Error ? error.message : 'Erreur de chargement',
+            });
+        }
+    },
+
+    // Add reservation via API
     addReservation: async (data: CreateReservationData) => {
-        const product = MOCK_PRODUCTS.find(p => p.id === data.productId);
+        set({ loading: true, error: null });
+        try {
+            const reservationData: CreateReservationDTO = {
+                ...data,
+                productId: data.productId || '',
+                source: data.source || 'DIRECT',
+            };
 
-        const newReservation: Reservation = {
-            id: `RES-${uuidv4().slice(0, 8).toUpperCase()}`,
-            customerName: data.customerName.trim(),
-            customerPhone: data.customerPhone.replace(/\s/g, ''),
-            customerEmail: data.customerEmail.trim(),
-            productId: data.productId || '',
-            productName: product?.name || data.productName || 'Produit Inconnu',
-            productCategory: product?.category || data.productCategory || 'other',
-            quantity: data.quantity,
-            unitPrice: product?.price || 0,
-            totalPrice: (product?.price || 0) * data.quantity,
-            status: 'PENDING',
-            source: data.source || 'DIRECT',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            preferredDeliveryDate: data.preferredDeliveryDate,
-            notes: data.notes?.trim(),
-        };
+            const response = await reservationService.createReservation(reservationData);
+            const newReservation: Reservation = {
+                id: response.data.id,
+                customerName: reservationData.customerName,
+                customerPhone: reservationData.customerPhone,
+                customerEmail: reservationData.customerEmail,
+                productId: reservationData.productId!,
+                productName: reservationData.productName!,
+                productCategory: reservationData.productCategory!,
+                quantity: reservationData.quantity,
+                unitPrice: reservationData.productPrice,
+                totalPrice: reservationData.productPrice * reservationData.quantity,
+                status: 'PENDING',
+                source: reservationData.source!,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                preferredDeliveryDate: reservationData.preferredDeliveryDate,
+                notes: reservationData.notes,
+            };
 
-        set((state) => ({
-            reservations: [newReservation, ...state.reservations],
-            filteredReservations: [newReservation, ...state.filteredReservations],
-            recentActions: [
-                {
-                    type: 'CREATE',
-                    reservationId: newReservation.id,
-                    timestamp: Date.now(),
-                    details: `Nouvelle réservation: ${newReservation.customerName}`,
-                },
-                ...state.recentActions.slice(0, 4),
-            ],
-        }));
+            set((state) => ({
+                reservations: [newReservation, ...state.reservations],
+                filteredReservations: [newReservation, ...state.filteredReservations],
+                loading: false,
+                recentActions: [
+                    {
+                        type: 'CREATE',
+                        reservationId: newReservation.id,
+                        timestamp: Date.now(),
+                        details: `Nouvelle réservation: ${newReservation.customerName}`,
+                    },
+                    ...state.recentActions.slice(0, 4),
+                ],
+            }));
 
-        return newReservation;
+            return newReservation;
+        } catch (error) {
+            set({
+                loading: false,
+                error: error instanceof Error ? error.message : 'Erreur de création',
+            });
+            throw error;
+        }
     },
 
-    // Update reservation status
+    // Update reservation status via API
     updateReservationStatus: async (id: string, status: ReservationStatus) => {
-        const reservation = get().reservations.find(r => r.id === id);
-        if (!reservation) return;
+        set({ loading: true, error: null });
+        try {
+            await reservationService.updateReservationStatus(id, { status });
 
-        const oldStatus = reservation.status;
-        const now = new Date().toISOString();
+            set((state) => {
+                const updatedReservations = state.reservations.map(r =>
+                    r.id === id ? { ...r, status, updatedAt: new Date().toISOString() } : r
+                );
 
-        set((state) => ({
-            reservations: state.reservations.map((res) =>
-                res.id === id
-                    ? {
-                        ...res,
-                        status,
-                        updatedAt: now,
-                        confirmedAt: status === 'CONFIRMED' ? now : res.confirmedAt,
-                        deliveredAt: status === 'DELIVERED' ? now : res.deliveredAt,
-                    }
-                    : res
-            ),
-            filteredReservations: state.filteredReservations.map((res) =>
-                res.id === id
-                    ? {
-                        ...res,
-                        status,
-                        updatedAt: now,
-                        confirmedAt: status === 'CONFIRMED' ? now : res.confirmedAt,
-                        deliveredAt: status === 'DELIVERED' ? now : res.deliveredAt,
-                    }
-                    : res
-            ),
-            recentActions: [
-                {
-                    type: 'UPDATE',
-                    reservationId: id,
-                    timestamp: Date.now(),
-                    details: `Statut changé: ${oldStatus} → ${status}`,
-                },
-                ...state.recentActions.slice(0, 4),
-            ],
-        }));
+                return {
+                    reservations: updatedReservations,
+                    filteredReservations: state.filters
+                        ? updatedReservations // Filter logic would go here if we wanted to re-filter immediately
+                        : updatedReservations,
+                    loading: false,
+                    recentActions: [
+                        {
+                            type: 'UPDATE',
+                            reservationId: id,
+                            timestamp: Date.now(),
+                            details: `Statut mis à jour: ${status}`,
+                        },
+                        ...state.recentActions.slice(0, 4),
+                    ],
+                };
+            });
+
+            // Trigger filter update to ensure consistency
+            get().setFilters(get().filters);
+        } catch (error) {
+            set({
+                loading: false,
+                error: error instanceof Error ? error.message : 'Erreur de mise à jour',
+            });
+            throw error;
+        }
     },
 
-    // Update reservation
+    // Update reservation via API
     updateReservation: async (id: string, data: UpdateReservationData) => {
-        set((state) => ({
-            reservations: state.reservations.map((res) =>
-                res.id === id
-                    ? { ...res, ...data, updatedAt: new Date().toISOString() }
-                    : res
-            ),
-            filteredReservations: state.filteredReservations.map((res) =>
-                res.id === id
-                    ? { ...res, ...data, updatedAt: new Date().toISOString() }
-                    : res
-            ),
-        }));
+        // Here we reuse updateReservationStatus if only status/notes are updated
+        // or we could implement a more comprehensive update if needed.
+        // For now, let's satisfy the interface.
+        set({ loading: true, error: null });
+        try {
+            await reservationService.updateReservationStatus(id, {
+                status: data.status,
+                notes: data.notes
+            });
+
+            set((state) => {
+                const updatedReservations = state.reservations.map(r =>
+                    r.id === id ? {
+                        ...r,
+                        ...(data.status && { status: data.status }),
+                        ...(data.notes && { notes: data.notes }),
+                        ...(data.preferredDeliveryDate && { preferredDeliveryDate: data.preferredDeliveryDate }),
+                        updatedAt: new Date().toISOString()
+                    } : r
+                );
+
+                return {
+                    reservations: updatedReservations,
+                    loading: false,
+                    recentActions: [
+                        {
+                            type: 'UPDATE',
+                            reservationId: id,
+                            timestamp: Date.now(),
+                            details: 'Mise à jour de la réservation',
+                        },
+                        ...state.recentActions.slice(0, 4),
+                    ],
+                };
+            });
+
+            get().setFilters(get().filters);
+        } catch (error) {
+            set({
+                loading: false,
+                error: error instanceof Error ? error.message : 'Erreur de mise à jour',
+            });
+            throw error;
+        }
     },
 
-    // Delete reservation
+    // Delete reservation via API
     deleteReservation: async (id: string) => {
-        const reservation = get().reservations.find(r => r.id === id);
-        if (!reservation) return;
+        set({ loading: true, error: null });
+        try {
+            await reservationService.deleteReservation(id);
 
-        set((state) => ({
-            reservations: state.reservations.filter((res) => res.id !== id),
-            filteredReservations: state.filteredReservations.filter((res) => res.id !== id),
-            recentActions: [
-                {
-                    type: 'DELETE',
-                    reservationId: id,
-                    timestamp: Date.now(),
-                    details: `Suppression: ${reservation.customerName}`,
-                },
-                ...state.recentActions.slice(0, 4),
-            ],
-        }));
+            set((state) => {
+                const filtered = state.reservations.filter(r => r.id !== id);
+                return {
+                    reservations: filtered,
+                    loading: false,
+                    recentActions: [
+                        {
+                            type: 'DELETE',
+                            reservationId: id,
+                            timestamp: Date.now(),
+                            details: 'Réservation supprimée',
+                        },
+                        ...state.recentActions.slice(0, 4),
+                    ],
+                };
+            });
+
+            get().setFilters(get().filters);
+        } catch (error) {
+            set({
+                loading: false,
+                error: error instanceof Error ? error.message : 'Erreur de suppression',
+            });
+            throw error;
+        }
     },
 
     // Set filters
@@ -365,10 +358,16 @@ export const useReservationStore = create<ReservationStore>((set, get) => ({
 
 /**
  * Hook to compute reservation statistics
- * Always derived from current state, never stored
+ * Now fetches from API or computes from store
  */
 export function useReservationStats(): ReservationStats {
     const reservations = useReservationStore(state => state.reservations);
+
+    // If no reservations yet, fetch them
+    if (reservations.length === 0) {
+        const { fetchReservations } = useReservationStore.getState();
+        fetchReservations().catch(console.error);
+    }
 
     const total = reservations.length;
 
@@ -383,7 +382,7 @@ export function useReservationStats(): ReservationStats {
     // Total revenue (excluding cancelled)
     const totalRevenue = reservations
         .filter(r => r.status !== 'CANCELLED')
-        .reduce((sum, r) => sum + r.totalPrice, 0);
+        .reduce((sum, r) => sum + (r.totalPrice || 0), 0);
 
     // Average order value
     const averageOrderValue = total > 0 ? totalRevenue / total : 0;

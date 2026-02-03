@@ -24,28 +24,28 @@ export function StatsPreview({ stats }: StatsPreviewProps) {
         {
             icon: <Clock className="w-5 h-5 sm:w-6 sm:h-6" />,
             label: 'En attente',
-            value: stats.enAttenteAujourdhui.toString(),
+            value: stats.pendingToday.toString(),
             color: 'from-amber-500 to-orange-500',
             description: "Aujourd'hui",
         },
         {
             icon: <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />,
             label: "Chiffre d'affaires",
-            value: `${stats.chiffreAffaires} €`,
+            value: `${stats.totalRevenue} €`,
             color: 'from-green-500 to-emerald-500',
             description: 'Total généré',
         },
         {
             icon: <Package className="w-5 h-5 sm:w-6 sm:h-6" />,
             label: 'Produit populaire',
-            value: stats.produitLePlusPopulaire,
+            value: stats.mostPopularProduct?.name || 'Aucun',
             color: 'from-purple-500 to-pink-500',
             description: 'Le plus réservé',
         },
         {
             icon: <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />,
             label: 'Quantité totale',
-            value: stats.quantiteTotale.toString(),
+            value: stats.totalQuantity.toString(),
             color: 'from-indigo-500 to-violet-500',
             description: 'Articles réservés',
         },
@@ -54,7 +54,7 @@ export function StatsPreview({ stats }: StatsPreviewProps) {
             label: 'Taux de confirmation',
             value:
                 stats.total > 0
-                    ? `${Math.round((stats.parStatut.confirmee / stats.total) * 100)}%`
+                    ? `${Math.round((stats.byStatus.confirmed / stats.total) * 100)}%`
                     : '0%',
             color: 'from-rose-500 to-red-500',
             description: 'Réservations confirmées',

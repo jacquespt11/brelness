@@ -1,5 +1,6 @@
-// src/api/admin.service.ts
 import { api } from './axios.config';
+import type { ReservationStatus } from '@/shared/types/common.types';
+import type { UpdateReservationDTO } from '../features/reservations/types/reservation.dto';
 
 export const adminService = {
     // Admin routes

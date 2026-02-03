@@ -1,6 +1,5 @@
 // src/features/reservations/components/ReservationForm/index.tsx
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'react-motion'; // Wait, it's framer-motion in this project
 import { motion as motionBase, AnimatePresence as AnimatePresenceBase } from 'framer-motion';
 import { Button, Input } from '@/shared/components/ui';
 import { useReservationStore } from '../../store/reservationStore';
@@ -53,6 +52,7 @@ export function ReservationForm({ product, onSuccess, onCancel }: ReservationFor
                 customerEmail: '', // Optional for now
                 productId: product?.id || '',
                 productName: product?.name || '',
+                productPrice: product?.price || 0,
                 productCategory: product?.category || 'other',
                 quantity: formData.quantity,
                 source: 'DIRECT',
@@ -100,7 +100,7 @@ export function ReservationForm({ product, onSuccess, onCancel }: ReservationFor
                     onChange={(e) => setFormData(prev => ({ ...prev, customerPhone: e.target.value }))}
                     placeholder="0612345678"
                     required
-                    description="Nous vous appellerons sur ce numéro pour confirmer"
+                    helperText="Nous vous appellerons sur ce numéro pour confirmer"
                 />
 
                 <div>
@@ -171,7 +171,7 @@ export function ReservationForm({ product, onSuccess, onCancel }: ReservationFor
                     variant="primary"
                     fullWidth
                     size="lg"
-                    loading={isSubmitting}
+                    isLoading={isSubmitting}
                 >
                     Réserver maintenant →
                 </Button>

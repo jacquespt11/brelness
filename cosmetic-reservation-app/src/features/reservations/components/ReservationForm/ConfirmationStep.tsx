@@ -1,13 +1,21 @@
 // src/features/reservations/components/ReservationForm/ConfirmationStep.tsx
-import { Check, Calendar, FileText, ShoppingBag, User } from 'lucide-react';
+
+import { Check, Calendar, FileText, ShoppingBag, User, Package } from 'lucide-react';
 import { motion } from 'framer-motion';
+import type { CreateReservationData } from '../../types/reservation.types';
+import type { Product } from '@/features/products/types/product.types';
 
 interface ConfirmationStepProps {
-    formData: any;
+    formData: CreateReservationData;
+    selectedProduct?: Product;
     totalPrice: number;
 }
 
-export function ConfirmationStep({ formData, totalPrice }: ConfirmationStepProps) {
+export function ConfirmationStep({ formData, selectedProduct, totalPrice }: ConfirmationStepProps) {
+    // Calculate unit price
+    const unitPrice = selectedProduct?.price || 0;
+    const calculatedTotalPrice = unitPrice * formData.quantity;
+
     return (
         <motion.div
             initial={{ x: 20, opacity: 0 }}
@@ -33,6 +41,9 @@ export function ConfirmationStep({ formData, totalPrice }: ConfirmationStepProps
                         </div>
                         <p className="font-bold text-gray-800 dark:text-white">{formData.customerName}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{formData.customerPhone}</p>
+                        {formData.customerEmail && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{formData.customerEmail}</p>
+                        )}
                     </div>
 
                     {/* Product Info */}
@@ -40,30 +51,78 @@ export function ConfirmationStep({ formData, totalPrice }: ConfirmationStepProps
                         <div className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider">
                             <ShoppingBag size={12} className="mr-1" /> Produit
                         </div>
-                        <p className="font-bold text-gray-800 dark:text-white">{formData.productName}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {formData.quantity} unité{formData.quantity > 1 ? 's' : ''} • {totalPrice.toFixed(2)}€ total
-                        </p>
+                        {selectedProduct ? (
+                            <>
+                                <p className="font-bold text-gray-800 dark:text-white">{selectedProduct.name}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {formData.quantity} unité{formData.quantity > 1 ? 's' : ''} • {unitPrice.toFixed(2)}€/unité
+                                </p>
+                            </>
+                        ) : formData.productName ? (
+                            <>
+                                <p className="font-bold text-gray-800 dark:text-white">{formData.productName}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    Catégorie: {formData.productCategory}
+                                </p>
+                            </>
+                        ) : (
+                            <p className="text-sm text-red-500">Produit non spécifié</p>
+                        )}
                     </div>
 
-                    {/* Delivery Info */}
+                    {/* Pricing */}
                     <div className="space-y-2">
                         <div className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider">
-                            <Calendar size={12} className="mr-1" /> Livraison souhaitée
+                            <Package size={12} className="mr-1" /> Prix
                         </div>
-                        <p className="text-sm text-gray-800 dark:text-white">
-                            {formData.preferredDeliveryDate
-                                ? new Date(formData.preferredDeliveryDate).toLocaleDateString('fr-FR')
-                                : 'Non spécifiée'}
-                        </p>
+                        <div className="space-y-1">
+                            {selectedProduct && (
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">
+                                        {formData.quantity} × {unitPrice.toFixed(2)}€
+                                    </span>
+                                    <span className="font-medium">{(unitPrice * formData.quantity).toFixed(2)}€</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between text-lg font-bold border-t pt-2 mt-2">
+                                <span className="text-gray-800 dark:text-white">Total</span>
+                                <span className="text-purple-600 dark:text-purple-400">
+                                    {calculatedTotalPrice.toFixed(2)}€
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Source Info */}
-                    <div className="space-y-2">
-                        <div className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider">
-                            <FileText size={12} className="mr-1" /> Source
+                    {/* Delivery & Source Info */}
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <div className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                <Calendar size={12} className="mr-1" /> Livraison
+                            </div>
+                            <p className="text-sm text-gray-800 dark:text-white">
+                                {formData.preferredDeliveryDate
+                                    ? new Date(formData.preferredDeliveryDate).toLocaleDateString('fr-FR')
+                                    : 'Non spécifiée'}
+                            </p>
                         </div>
-                        <p className="text-sm text-gray-800 dark:text-white">{formData.source}</p>
+
+                        <div className="space-y-2">
+                            <div className="flex items-center text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                <FileText size={12} className="mr-1" /> Source
+                            </div>
+                            <p className="text-sm text-gray-800 dark:text-white">
+                                {(() => {
+                                    switch (formData.source) {
+                                        case 'FACEBOOK': return 'Facebook';
+                                        case 'INSTAGRAM': return 'Instagram';
+                                        case 'WHATSAPP': return 'WhatsApp';
+                                        case 'PHONE': return 'Téléphone';
+                                        case 'STORE': return 'Boutique';
+                                        default: return 'Site web';
+                                    }
+                                })()}
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -84,6 +143,9 @@ export function ConfirmationStep({ formData, totalPrice }: ConfirmationStepProps
                 <p className="text-sm text-green-700 dark:text-green-300 flex items-center">
                     <Check size={16} className="mr-2" />
                     Prêt à enregistrer cette réservation ?
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                    La réservation sera enregistrée avec le statut "En attente"
                 </p>
             </div>
         </motion.div>

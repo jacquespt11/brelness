@@ -47,6 +47,7 @@ export interface CreateReservationData {
     customerEmail: string;
     productId?: string;
     productName?: string;
+    productPrice: number;
     productCategory?: string;
     quantity: number;
     preferredDeliveryDate?: string;
@@ -101,7 +102,7 @@ export interface ReservationFilters {
  * Recent action tracking
  */
 export interface ReservationAction {
-    type: 'CREATE' | 'UPDATE' | 'DELETE';
+    type: 'CREATE' | 'UPDATE' | 'DELETE' | 'FETCH';
     reservationId: string;
     timestamp: number;
     details: string;

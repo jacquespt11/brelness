@@ -1,35 +1,36 @@
 // src/api/reservation.service.ts
+
 import { api } from './axios.config';
 import {
-    ReservationDTO,
+    CreateReservationDTO,
     UpdateReservationDTO,
-    ReservationStatus
-} from '../features/reservations/types/reservation.types';
+    ReservationResponseDTO,
+    ReservationStatsDTO,
+    ReservationQueryDTO
+} from '../features/reservations/types/reservation.dto';
+import type { ReservationStatus } from '@/shared/types/common.types';
 
 export const reservationService = {
     // Client routes
-    createReservation: (data: ReservationDTO) =>
-        api.post('/reservations', data),
+    createReservation: (data: CreateReservationDTO) =>
+        api.post<ReservationResponseDTO>('/reservations', data),
 
     getProductReservations: (productId: string) =>
-        api.get(`/reservations/product/${productId}`),
+        api.get<ReservationResponseDTO[]>(`/reservations/product/${productId}`),
 
     // Admin routes
-    getAllReservations: (params?: {
-        status?: ReservationStatus;
-        page?: number;
-        limit?: number;
-    }) => api.get('/admin/reservations', { params }),
+    getAllReservations: (params?: ReservationQueryDTO) =>
+        api.get<ReservationResponseDTO[]>('/admin/reservations', { params }),
 
     getReservationById: (id: string) =>
-        api.get(`/admin/reservations/${id}`),
+        api.get<ReservationResponseDTO>(`/admin/reservations/${id}`),
 
     updateReservationStatus: (id: string, data: UpdateReservationDTO) =>
-        api.patch(`/admin/reservations/${id}/status`, data),
+        api.patch<ReservationResponseDTO>(`/admin/reservations/${id}/status`, data),
 
     deleteReservation: (id: string) =>
-        api.delete(`/admin/reservations/${id}`),
+        api.delete<void>(`/admin/reservations/${id}`),
 
     getReservationStats: () =>
-        api.get('/admin/reservations/stats'),
+        api.get<ReservationStatsDTO>('/admin/reservations/stats'),
 };

@@ -9,6 +9,7 @@ export const ROUTES = {
     HOME: '/',
     CATALOG: '/catalog',
     RESERVE: '/reserve',
+    RESERVATION: '/reservations',
     RESERVE_PRODUCT: (productId: string) => `/reserve/${productId}`,
     ADD_RESERVATION: '/add',
 

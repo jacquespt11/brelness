@@ -1,6 +1,8 @@
 // src/features/reservations/hooks/useReservationForm.ts
+
 import { useState, useCallback } from 'react';
 import type { CreateReservationData } from '../types/reservation.types';
+import type { Source } from '@/shared/types/common.types';
 
 export function useReservationForm(initialData?: Partial<CreateReservationData>) {
     const [formData, setFormData] = useState<CreateReservationData>({
@@ -9,9 +11,10 @@ export function useReservationForm(initialData?: Partial<CreateReservationData>)
         customerEmail: initialData?.customerEmail || '',
         productId: initialData?.productId || '',
         productName: initialData?.productName || '',
-        productCategory: initialData?.productCategory || 'other',
+        productPrice: initialData?.productPrice || 0,
+        productCategory: initialData?.productCategory || '',
         quantity: initialData?.quantity || 1,
-        source: initialData?.source || 'DIRECT',
+        source: initialData?.source || 'DIRECT' as Source,
         notes: initialData?.notes || '',
         preferredDeliveryDate: initialData?.preferredDeliveryDate || '',
     });
@@ -42,8 +45,8 @@ export function useReservationForm(initialData?: Partial<CreateReservationData>)
         }
 
         if (step === 1) {
-            if (!formData.productName.trim() && !formData.productId) {
-                newErrors.productName = 'Veuillez sélectionner ou saisir un produit';
+            if (!formData.productId) {
+                newErrors.productId = 'Veuillez sélectionner un produit';
             }
         }
 

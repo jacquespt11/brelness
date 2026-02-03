@@ -93,8 +93,8 @@ export function AdminDashboard() {
                 <button
                     onClick={() => setActiveTab('overview')}
                     className={`flex-1 sm:flex-none px-8 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'overview'
-                            ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-md ring-1 ring-black/5'
-                            : 'text-gray-500 hover:text-gray-800 dark:hover:text-white'
+                        ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-md ring-1 ring-black/5'
+                        : 'text-gray-500 hover:text-gray-800 dark:hover:text-white'
                         }`}
                 >
                     Analytiques
@@ -102,8 +102,8 @@ export function AdminDashboard() {
                 <button
                     onClick={() => setActiveTab('reservations')}
                     className={`flex-1 sm:flex-none px-8 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'reservations'
-                            ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-md ring-1 ring-black/5'
-                            : 'text-gray-500 hover:text-gray-800 dark:hover:text-white'
+                        ? 'bg-white dark:bg-gray-700 text-purple-600 dark:text-purple-400 shadow-md ring-1 ring-black/5'
+                        : 'text-gray-500 hover:text-gray-800 dark:hover:text-white'
                         }`}
                 >
                     Liste des réservations

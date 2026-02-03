@@ -1,6 +1,8 @@
 // src/store/reservation.store.ts
 import { create } from 'zustand';
-import { Reservation, ReservationStatus } from '../features/reservations/types/reservation.types';
+import { Reservation } from '../features/reservations/types/reservation.types';
+import { Product } from '../types/reservation';
+import { ReservationStatus } from '../shared/types/common.types'
 
 interface ReservationStore {
     reservations: Reservation[];
