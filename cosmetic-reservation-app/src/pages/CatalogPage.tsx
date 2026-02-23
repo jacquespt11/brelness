@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useReservationStore } from '../state/reservationStore';
@@ -6,11 +6,15 @@ import Logo from '../components/ui/Logo';
 import ProductCard from '../components/catalog/ProductCard';
 import CategoryFilter from '../components/catalog/CategoryFilter';
 import type { Product } from '../types/reservation';
-import { ArrowLeft, Search, Filter, Home } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Home, Loader2 } from 'lucide-react';
 
 const CatalogPage = () => {
   const navigate = useNavigate();
-  const products = useReservationStore((state) => state.products);
+  const { products, isLoading, fetchProducts } = useReservationStore();
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
@@ -352,7 +356,12 @@ const CatalogPage = () => {
               </div>
 
               {/* Grille de produits */}
-              {filteredProducts.length === 0 ? (
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
+                  <Loader2 className="w-12 h-12 text-purple-600 animate-spin mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400 font-medium">Chargement des produits...</p>
+                </div>
+              ) : filteredProducts.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}

@@ -5,10 +5,10 @@
  * Garantit la cohérence des données dans toute l'application
  */
 export const ReservationStatus = {
-    PENDING: 'en_attente',
-    CONFIRMED: 'confirmee',
-    CANCELLED: 'annulee',
-    DELIVERED: 'livree'
+    PENDING: 'PENDING',
+    CONFIRMED: 'CONFIRMED',
+    CANCELLED: 'CANCELLED',
+    DELIVERED: 'DELIVERED'
 } as const;
 
 export type ReservationStatus = (typeof ReservationStatus)[keyof typeof ReservationStatus];

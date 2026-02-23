@@ -24,7 +24,7 @@ export function ProductPreview({ product }: ProductPreviewProps) {
 
                     <div className="flex items-center justify-between mt-3">
                         <span className="text-xl font-bold text-purple-600 dark:text-purple-400">
-                            {product.price.toFixed(2)}€
+                            {Number(product.price).toFixed(2)}€
                         </span>
 
                         <Badge variant={isLowStock ? 'warning' : 'success'}>

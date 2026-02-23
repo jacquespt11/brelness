@@ -49,11 +49,10 @@ export function ReservationForm({ product, onSuccess, onCancel }: ReservationFor
             await addReservation({
                 customerName: formData.customerName,
                 customerPhone: cleanedPhone,
-                customerEmail: '', // Optional for now
                 productId: product?.id || '',
                 productName: product?.name || '',
                 productPrice: product?.price || 0,
-                productCategory: product?.category || 'other',
+                productCategory: product?.category || 'OTHER',
                 quantity: formData.quantity,
                 source: 'DIRECT',
             });

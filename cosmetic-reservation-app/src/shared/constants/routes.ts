@@ -12,6 +12,7 @@ export const ROUTES = {
     RESERVATION: '/reservations',
     RESERVE_PRODUCT: (productId: string) => `/reserve/${productId}`,
     ADD_RESERVATION: '/add',
+    LOGIN: '/login',
 
     // Admin routes
     ADMIN: '/admin',
@@ -19,6 +20,7 @@ export const ROUTES = {
     ADMIN_RESERVATIONS: '/admin/reservations',
     ADMIN_PRODUCTS: '/admin/products',
     ADMIN_SETTINGS: '/admin/settings',
+    ADMIN_USERS: '/admin/users',
 } as const;
 
 export type RouteKey = keyof typeof ROUTES;

@@ -22,6 +22,7 @@ interface ReservationFormProps {
  * et expérience utilisateur optimisée
  */
 const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
+    const { products, fetchProducts, isLoading: storeLoading } = useReservationStore();
     const addReservation = useReservationStore((state) => state.addReservation);
 
     const [formData, setFormData] = useState({
@@ -29,23 +30,20 @@ const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
         telephone: '',
         email: '',
         produit: '',
-        produitType: 'soin_visage',
+        productId: '',
+        produitType: '',
         quantite: 1,
         dateLivraisonSouhaitee: '',
         notes: ''
     });
 
+    React.useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts]);
+
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
-
-    const productTypes = [
-        { value: 'soin_visage', label: 'Soin visage', prix: 45.90, icon: '✨' },
-        { value: 'maquillage', label: 'Maquillage', prix: 32.50, icon: '💄' },
-        { value: 'parfum', label: 'Parfum', prix: 89.99, icon: '🌸' },
-        { value: 'soin_corps', label: 'Soin corps', prix: 28.75, icon: '🧴' },
-        { value: 'cheveux', label: 'Produits cheveux', prix: 24.50, icon: '🧖‍♀️' }
-    ];
 
     const steps = [
         { title: 'Client', icon: <User className="w-4 h-4" /> },
@@ -68,7 +66,10 @@ const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
                 if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Email invalide';
                 break;
             case 'produit':
-                if (!value.trim()) return 'Le produit est requis';
+                if (!value.trim() && !formData.productId) return 'Le produit est requis';
+                break;
+            case 'productId':
+                if (!value) return 'Le choix d\'un produit est requis';
                 break;
         }
         return '';
@@ -105,7 +106,7 @@ const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
         // Validation finale
         const newErrors: Record<string, string> = {};
         Object.entries(formData).forEach(([key, value]) => {
-            if (['nomClient', 'telephone', 'produit'].includes(key)) {
+            if (['nomClient', 'telephone', 'productId'].includes(key)) {
                 const error = validateField(key, value as string);
                 if (error) newErrors[key] = error;
             }
@@ -130,12 +131,14 @@ const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
                     telephone: '',
                     email: '',
                     produit: '',
-                    produitType: 'soin_visage',
+                    productId: '',
+                    produitType: '',
                     quantite: 1,
                     dateLivraisonSouhaitee: '',
                     notes: ''
                 });
                 setErrors({});
+                setCurrentStep(0);
             }
         } catch (error) {
             console.error('Erreur lors de la création:', error);
@@ -144,8 +147,8 @@ const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
         }
     };
 
-    const prixActuel = productTypes.find(p => p.value === formData.produitType)?.prix || 0;
-    const totalEstime = prixActuel * formData.quantite;
+    const selectedProduct = products.find(p => p.id === formData.productId);
+    const totalEstime = (selectedProduct?.price || 0) * formData.quantite;
 
     const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
@@ -315,7 +318,7 @@ const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
                     >
                         <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                             <Package className="w-6 h-6 text-purple-600" />
-                            Informations produit
+                            Sélection du produit
                         </h3>
 
                         <motion.div
@@ -324,34 +327,49 @@ const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
                             className="space-y-4"
                         >
                             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                                Type de produit
+                                Produits disponibles
                             </label>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                                {productTypes.map((type) => (
-                                    <motion.button
-                                        key={type.value}
-                                        type="button"
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => setFormData(prev => ({
-                                            ...prev,
-                                            produitType: type.value
-                                        }))}
-                                        className={`p-4 rounded-xl border-2 transition-all ${formData.produitType === type.value
-                                            ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20'
-                                            : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
-                                            }`}
-                                    >
-                                        <div className="text-2xl mb-2">{type.icon}</div>
-                                        <div className="text-sm font-medium text-gray-800 dark:text-white">
-                                            {type.label}
-                                        </div>
-                                        <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                            {type.prix}€
-                                        </div>
-                                    </motion.button>
-                                ))}
-                            </div>
+                            {storeLoading && products.length === 0 ? (
+                                <div className="flex justify-center p-8">
+                                    <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto p-1">
+                                    {products.map((product) => (
+                                        <motion.button
+                                            key={product.id}
+                                            type="button"
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => setFormData(prev => ({
+                                                ...prev,
+                                                productId: product.id,
+                                                produit: product.name,
+                                                produitType: product.category
+                                            }))}
+                                            className={`p-3 rounded-xl border-2 text-left transition-all ${formData.productId === product.id
+                                                ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                                                : 'border-gray-100 dark:border-gray-800 hover:border-purple-200'
+                                                }`}
+                                        >
+                                            <div className="font-semibold text-gray-800 dark:text-white truncate">
+                                                {product.name}
+                                            </div>
+                                            <div className="flex justify-between items-center mt-1">
+                                                <span className="text-xs text-purple-600 dark:text-purple-400 capitalize">
+                                                    {product.category}
+                                                </span>
+                                                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                                                    {product.price}€
+                                                </span>
+                                            </div>
+                                        </motion.button>
+                                    ))}
+                                </div>
+                            )}
+                            {errors.productId && (
+                                <p className="text-red-500 text-sm">{errors.productId}</p>
+                            )}
                         </motion.div>
 
                         <div className="grid md:grid-cols-2 gap-6">
@@ -437,15 +455,15 @@ const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
                                 <div>
                                     <div className="text-sm text-gray-600 dark:text-gray-400">Estimation totale</div>
                                     <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-                                        {totalEstime.toFixed(2)}€
+                                        {(formData.productId ? (products.find(p => p.id === formData.productId)?.price || 0) * formData.quantite : 0).toFixed(2)}€
                                     </div>
                                 </div>
                                 <div className="text-right">
                                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                                        {formData.quantite} × {prixActuel.toFixed(2)}€
+                                        {formData.quantite} × {(formData.productId ? products.find(p => p.id === formData.productId)?.price || 0 : 0).toFixed(2)}€
                                     </div>
                                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                                        {productTypes.find(p => p.value === formData.produitType)?.label}
+                                        {formData.produit || 'Aucun produit sélectionné'}
                                     </div>
                                 </div>
                             </div>
@@ -538,7 +556,7 @@ const ReservationForm = ({ onSuccess }: ReservationFormProps) => {
                                     <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Produit</h4>
                                     <p className="text-gray-800 dark:text-white">{formData.produit}</p>
                                     <p className="text-gray-600 dark:text-gray-400">
-                                        {productTypes.find(p => p.value === formData.produitType)?.label} • {formData.quantite} unité{formData.quantite > 1 ? 's' : ''}
+                                        {formData.produitType} • {formData.quantite} unité{formData.quantite > 1 ? 's' : ''}
                                     </p>
                                 </div>
 

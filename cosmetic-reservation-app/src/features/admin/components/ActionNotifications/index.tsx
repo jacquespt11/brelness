@@ -12,7 +12,21 @@ export function ActionNotifications() {
     const [visibleNotifications, setVisibleNotifications] = useState<typeof recentActions>([]);
 
     useEffect(() => {
-        setVisibleNotifications(recentActions.slice(0, 3));
+        // Filter out FETCH actions and only show the last 3 actions
+        const filteredActions = recentActions
+            .filter(action => action.type !== 'FETCH')
+            .slice(0, 3);
+
+        setVisibleNotifications(filteredActions);
+
+        // Auto-dismiss notifications after 4 seconds
+        if (filteredActions.length > 0) {
+            const timer = setTimeout(() => {
+                setVisibleNotifications([]);
+            }, 4000);
+
+            return () => clearTimeout(timer);
+        }
     }, [recentActions]);
 
     const getActionIcon = (type: string) => {

@@ -11,7 +11,7 @@ export const APP_CONFIG = {
 
     // API configuration
     api: {
-        baseUrl: (import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:3000/api',
+        baseUrl: (import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:3001/api',
         timeout: 30000, // 30 seconds
     },
 

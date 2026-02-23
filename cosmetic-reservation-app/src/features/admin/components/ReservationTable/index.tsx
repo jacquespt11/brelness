@@ -144,7 +144,7 @@ export function ReservationTable({
                                             isEditable={true}
                                         />
                                         <div className="mt-2 text-2xl font-black text-gray-900 dark:text-white">
-                                            {reservation.totalPrice.toFixed(2)}€
+                                            {Number(reservation.totalPrice).toFixed(2)}€
                                         </div>
                                     </div>
 

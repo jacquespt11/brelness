@@ -25,7 +25,7 @@ export function HeroSection({ title, subtitle, highlight }: HeroSectionProps) {
                     <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-800 dark:text-white mb-3 sm:mb-4 lg:mb-6 leading-tight">
                         {title}
                         <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+                        <span className="text-purple-600">
                             {highlight}
                         </span>
                     </h1>

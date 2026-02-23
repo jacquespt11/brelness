@@ -96,7 +96,7 @@ export function StatsDashboard({ stats }: StatsDashboardProps) {
 
                                     return (
                                         <motion.circle
-                                            key={item.label}
+                                            key={`donut-${item.label}-${index}`}
                                             cx="50"
                                             cy="50"
                                             r="40"
@@ -107,6 +107,7 @@ export function StatsDashboard({ stats }: StatsDashboardProps) {
                                             strokeDashoffset={-offset}
                                             initial={{ strokeDasharray: `0 ${circumference}` }}
                                             animate={{ strokeDasharray: `${(percentage / 100) * circumference} ${circumference}` }}
+                                            exit={{ strokeDasharray: `0 ${circumference}` }}
                                             transition={{ duration: 1.5, delay: 0.8, ease: "circOut" }}
                                             className="transition-all"
                                         />

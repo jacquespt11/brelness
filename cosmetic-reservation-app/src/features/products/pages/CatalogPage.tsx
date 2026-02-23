@@ -1,5 +1,5 @@
 // src/features/products/pages/CatalogPage.tsx
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Search, Filter, Home, X } from 'lucide-react';
@@ -17,18 +17,26 @@ import type { Product } from '@/features/products/types/product.types';
 export function CatalogPage() {
     const navigate = useNavigate();
     const products = useProductStore((state) => state.products);
+    const loading = useProductStore((state) => state.loading);
+    const fetchProducts = useProductStore((state) => state.fetchProducts);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
     const [showFilters, setShowFilters] = useState(false);
 
+    // Fetch real products from the API on mount
+    useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts]);
+
     // Category mapping
     const categoryMap: Record<string, { label: string; icon: string }> = {
-        FACE_CARE: { label: 'Soin visage', icon: '✨' },
+        FACIAL_CARE: { label: 'Soin visage', icon: '✨' },
         MAKEUP: { label: 'Maquillage', icon: '💄' },
         PERFUME: { label: 'Parfums', icon: '🌸' },
         BODY_CARE: { label: 'Soin corps', icon: '🧴' },
         HAIR_CARE: { label: 'Soin cheveux', icon: '🧖‍♀️' },
+        OTHER: { label: 'Autre', icon: '📦' },
     };
 
     // Calculate categories from products
@@ -99,6 +107,18 @@ export function CatalogPage() {
         setSearchQuery('');
         setPriceRange([priceStats.min, priceStats.max]);
     };
+
+    // Loading state while fetching from API
+    if (loading && products.length === 0) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-purple-600 mx-auto mb-4" />
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">Chargement du catalogue...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">

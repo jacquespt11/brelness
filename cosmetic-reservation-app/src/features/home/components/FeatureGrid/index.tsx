@@ -113,14 +113,14 @@ export function FeatureGrid() {
                     className="text-center mb-16"
                 >
                     <div className="inline-flex items-center justify-center mb-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+                        <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center shadow-lg">
                             <span className="text-2xl">✨</span>
                         </div>
                     </div>
 
                     <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 dark:text-white mb-4">
                         Des fonctionnalités{' '}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+                        <span className="text-purple-600">
                             puissantes
                         </span>
                     </h2>
@@ -130,7 +130,7 @@ export function FeatureGrid() {
                         réservations
                     </p>
 
-                    <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto rounded-full"></div>
+                    <div className="w-24 h-1 bg-purple-500 mx-auto rounded-full"></div>
                 </motion.div>
 
                 {/* Features grid */}
@@ -149,20 +149,20 @@ export function FeatureGrid() {
                             className="group relative"
                         >
                             {/* Decorative background effect */}
-                            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
+                            <div className="absolute -inset-1 bg-purple-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
 
                             {/* Feature card */}
                             <Card variant="elevated" className="h-full">
                                 {/* Header gradient */}
                                 <div
-                                    className={`h-2 bg-gradient-to-r ${feature.color}`}
+                                    className={`h-2 ${feature.color.split(' ')[0].replace('from-', 'bg-')}`}
                                 ></div>
 
                                 <CardBody>
                                     {/* Icon and title */}
                                     <div className="flex items-start mb-4">
                                         <div
-                                            className={`p-3 rounded-xl bg-gradient-to-r ${feature.color} shadow-md mr-4`}
+                                            className={`p-3 rounded-xl ${feature.color.split(' ')[0].replace('from-', 'bg-')} shadow-md mr-4`}
                                         >
                                             <span className="text-2xl">{feature.icon}</span>
                                         </div>
@@ -227,7 +227,7 @@ export function FeatureGrid() {
                     className="mt-16 text-center"
                 >
                     <div className="inline-flex items-center space-x-4 px-6 py-4 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
-                        <div className="p-3 bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 rounded-xl">
+                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
                             <span className="text-2xl">🚀</span>
                         </div>
 

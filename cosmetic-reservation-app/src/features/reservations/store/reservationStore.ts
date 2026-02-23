@@ -69,8 +69,8 @@ export const useReservationStore = create<ReservationStore>((set, get) => ({
                 productCategory: res.product.category,
                 productImage: res.product.imageUrl,
                 quantity: res.quantity,
-                unitPrice: res.unitPrice,
-                totalPrice: res.totalPrice,
+                unitPrice: Number(res.unitPrice),    // Prisma Decimal → string, cast to number
+                totalPrice: Number(res.totalPrice),  // Prisma Decimal → string, cast to number
                 status: res.status,
                 source: res.source,
                 createdAt: res.createdAt,
@@ -107,30 +107,39 @@ export const useReservationStore = create<ReservationStore>((set, get) => ({
     addReservation: async (data: CreateReservationData) => {
         set({ loading: true, error: null });
         try {
+            // Only send fields the backend DTO accepts — extra fields cause 400
             const reservationData: CreateReservationDTO = {
-                ...data,
+                customerName: data.customerName,
+                customerPhone: data.customerPhone,
+                ...(data.customerEmail?.trim() ? { customerEmail: data.customerEmail.trim() } : {}),
                 productId: data.productId || '',
+                quantity: data.quantity,
                 source: data.source || 'DIRECT',
+                ...(data.preferredDeliveryDate ? { preferredDeliveryDate: data.preferredDeliveryDate } : {}),
+                ...(data.notes?.trim() ? { notes: data.notes.trim() } : {}),
             };
 
             const response = await reservationService.createReservation(reservationData);
+
+            // Map response back to frontend type
+            const resData = response.data;
             const newReservation: Reservation = {
-                id: response.data.id,
-                customerName: reservationData.customerName,
-                customerPhone: reservationData.customerPhone,
-                customerEmail: reservationData.customerEmail,
-                productId: reservationData.productId!,
-                productName: reservationData.productName!,
-                productCategory: reservationData.productCategory!,
-                quantity: reservationData.quantity,
-                unitPrice: reservationData.productPrice,
-                totalPrice: reservationData.productPrice * reservationData.quantity,
-                status: 'PENDING',
-                source: reservationData.source!,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                preferredDeliveryDate: reservationData.preferredDeliveryDate,
-                notes: reservationData.notes,
+                id: resData.id,
+                customerName: resData.customerName,
+                customerPhone: resData.customerPhone,
+                customerEmail: resData.customerEmail,
+                productId: resData.product?.id || reservationData.productId,
+                productName: resData.product?.name || data.productName || '',
+                productCategory: resData.product?.category || data.productCategory || 'OTHER',
+                quantity: resData.quantity,
+                unitPrice: Number(resData.unitPrice) || data.productPrice || 0,
+                totalPrice: Number(resData.totalPrice) || (data.productPrice || 0) * data.quantity,
+                status: resData.status || 'PENDING',
+                source: resData.source || reservationData.source || 'DIRECT',
+                createdAt: resData.createdAt || new Date().toISOString(),
+                updatedAt: resData.updatedAt || new Date().toISOString(),
+                preferredDeliveryDate: resData.preferredDeliveryDate,
+                notes: resData.notes,
             };
 
             set((state) => ({
@@ -362,12 +371,6 @@ export const useReservationStore = create<ReservationStore>((set, get) => ({
  */
 export function useReservationStats(): ReservationStats {
     const reservations = useReservationStore(state => state.reservations);
-
-    // If no reservations yet, fetch them
-    if (reservations.length === 0) {
-        const { fetchReservations } = useReservationStore.getState();
-        fetchReservations().catch(console.error);
-    }
 
     const total = reservations.length;
 

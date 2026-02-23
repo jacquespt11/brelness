@@ -25,11 +25,12 @@ export function ProductSelectionStep({
     };
 
     const productTypes = [
-        { value: 'VISAGE', label: 'Soin visage', icon: '✨' },
-        { value: 'YEUX', label: 'Yeux', icon: '👁️' },
-        { value: 'LEVRES', label: 'Lèvres', icon: '💋' },
-        { value: 'CORPS', label: 'Soin corps', icon: '🧴' },
-        { value: 'CHEVEUX', label: 'Cheveux', icon: '🧖‍♀️' }
+        { value: 'FACIAL_CARE', label: 'Soin visage', icon: '✨' },
+        { value: 'BODY_CARE', label: 'Soin corps', icon: '🧴' },
+        { value: 'HAIR_CARE', label: 'Soin cheveux', icon: '🧖‍♀️' },
+        { value: 'MAKEUP', label: 'Maquillage', icon: '💄' },
+        { value: 'PERFUME', label: 'Parfums', icon: '🌸' },
+        { value: 'OTHER', label: 'Autre', icon: '📦' }
     ];
 
     // Filter products by selected category

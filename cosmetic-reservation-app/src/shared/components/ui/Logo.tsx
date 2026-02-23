@@ -8,6 +8,7 @@ interface LogoProps {
     animated?: boolean;
     showText?: boolean;
     className?: string;
+    noLink?: boolean;
 }
 
 /**
@@ -18,7 +19,8 @@ export function Logo({
     size = 'md',
     animated = true,
     showText = false,
-    className = ''
+    className = '',
+    noLink = false
 }: LogoProps) {
     const sizeClasses = {
         sm: 'w-8 h-8',
@@ -53,12 +55,8 @@ export function Logo({
         },
     };
 
-    return (
-        <Link
-            to={ROUTES.HOME}
-            className={`flex items-center space-x-3 group ${className}`}
-            aria-label="Retour à l'accueil"
-        >
+    const content = (
+        <>
             <motion.div
                 initial={animated ? 'initial' : false}
                 animate={animated ? 'animate' : false}
@@ -66,8 +64,8 @@ export function Logo({
                 variants={logoVariants}
                 className={`${sizeClasses[size]} relative group cursor-pointer`}
             >
-                {/* Main logo with gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300" />
+                {/* Main logo with solid color */}
+                <div className="absolute inset-0 bg-purple-600 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300" />
 
                 {/* Overlay with pattern */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-xl" />
@@ -109,7 +107,7 @@ export function Logo({
                         repeat: Infinity,
                         ease: 'easeInOut',
                     }}
-                    className="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-white/30 to-transparent rounded-tl-xl"
+                    className="absolute top-0 left-0 w-1/2 h-1/2 bg-white/30 rounded-tl-xl"
                 />
 
                 {/* Hover halo effect */}
@@ -117,7 +115,7 @@ export function Logo({
                     initial={{ opacity: 0, scale: 0.8 }}
                     whileHover={{ opacity: 0.4, scale: 1.2 }}
                     transition={{ duration: 0.3 }}
-                    className="absolute inset-0 bg-gradient-to-br from-purple-400/40 to-pink-400/40 rounded-xl blur-md"
+                    className="absolute inset-0 bg-purple-400/40 rounded-xl blur-md"
                 />
             </motion.div>
 
@@ -130,7 +128,7 @@ export function Logo({
                     className="hidden md:block"
                 >
                     <div className="flex flex-col">
-                        <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        <span className="text-lg font-bold text-purple-600">
                             Brelness
                         </span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -139,6 +137,24 @@ export function Logo({
                     </div>
                 </motion.div>
             )}
+        </>
+    );
+
+    if (noLink) {
+        return (
+            <div className={`flex items-center space-x-3 group ${className}`}>
+                {content}
+            </div>
+        );
+    }
+
+    return (
+        <Link
+            to={ROUTES.HOME}
+            className={`flex items-center space-x-3 group ${className}`}
+            aria-label="Retour à l'accueil"
+        >
+            {content}
         </Link>
     );
 }

@@ -46,7 +46,7 @@ export function ProductChart({ data, delay = 0 }: ProductChartProps) {
                     const percentage = (data.values[index] / maxValue) * 100;
 
                     return (
-                        <div key={label} className="group">
+                        <div key={`${label}-${index}`} className="group">
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-sm font-bold text-gray-700 dark:text-gray-300 group-hover:text-purple-600 transition-colors">
                                     {label}
@@ -57,8 +57,10 @@ export function ProductChart({ data, delay = 0 }: ProductChartProps) {
                             </div>
                             <div className="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                                 <motion.div
+                                    key={`bar-${label}-${index}`}
                                     initial={{ width: 0 }}
                                     animate={{ width: `${percentage}%` }}
+                                    exit={{ width: 0 }}
                                     transition={{ duration: 1, delay: delay + 0.3 + (index * 0.1), ease: "circOut" }}
                                     className={`h-full ${colors[index % colors.length]} rounded-full shadow-lg shadow-current/20`}
                                 />

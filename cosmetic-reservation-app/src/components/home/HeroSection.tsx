@@ -32,7 +32,7 @@ const HeroSection = ({ stats }: HeroSectionProps) => {
                             className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6"
                         >
                             Réservez vos produits{' '}
-                            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                            <span className="text-purple-600">
                                 cosmétiques
                             </span>
                         </motion.h1>
@@ -54,7 +54,7 @@ const HeroSection = ({ stats }: HeroSectionProps) => {
                         >
                             <Link
                                 to="/add"
-                                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-full hover:from-purple-700 hover:to-pink-700 transition-all transform hover:-translate-y-1 shadow-xl hover:shadow-2xl text-lg"
+                                className="px-8 py-4 bg-purple-600 text-white font-bold rounded-full hover:bg-purple-700 transition-all transform hover:-translate-y-1 shadow-xl hover:shadow-2xl text-lg"
                             >
                                 Commencer maintenant
                             </Link>
@@ -79,7 +79,7 @@ const HeroSection = ({ stats }: HeroSectionProps) => {
                             <div className="grid grid-cols-2 gap-6">
                                 <motion.div
                                     whileHover={{ scale: 1.05 }}
-                                    className="bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 p-6 rounded-2xl text-center"
+                                    className="bg-purple-100 dark:bg-purple-900/30 p-6 rounded-2xl text-center"
                                 >
                                     <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
                                         {stats?.total || 0}
@@ -91,7 +91,7 @@ const HeroSection = ({ stats }: HeroSectionProps) => {
 
                                 <motion.div
                                     whileHover={{ scale: 1.05 }}
-                                    className="bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 p-6 rounded-2xl text-center"
+                                    className="bg-blue-100 dark:bg-blue-900/30 p-6 rounded-2xl text-center"
                                 >
                                     <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                                         {stats?.enAttente || 0}
@@ -103,7 +103,7 @@ const HeroSection = ({ stats }: HeroSectionProps) => {
 
                                 <motion.div
                                     whileHover={{ scale: 1.05 }}
-                                    className="bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 p-6 rounded-2xl text-center"
+                                    className="bg-green-100 dark:bg-green-900/30 p-6 rounded-2xl text-center"
                                 >
                                     <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
                                         {stats?.confirmees || 0}
@@ -115,7 +115,7 @@ const HeroSection = ({ stats }: HeroSectionProps) => {
 
                                 <motion.div
                                     whileHover={{ scale: 1.05 }}
-                                    className="bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 p-6 rounded-2xl text-center"
+                                    className="bg-orange-100 dark:bg-orange-900/30 p-6 rounded-2xl text-center"
                                 >
                                     <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
                                         {stats?.chiffreAffaires ? `${stats.chiffreAffaires}€` : '0€'}
@@ -126,7 +126,7 @@ const HeroSection = ({ stats }: HeroSectionProps) => {
                                 </motion.div>
                             </div>
 
-                            <div className="mt-8 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl">
+                            <div className="mt-8 p-4 bg-purple-500/10 rounded-xl">
                                 <p className="text-center text-gray-600 dark:text-gray-300">
                                     <span className="font-semibold">✨ Plateforme tout-en-un</span> pour la gestion de vos réservations cosmétiques
                                 </p>

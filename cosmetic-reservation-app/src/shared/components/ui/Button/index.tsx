@@ -38,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
         const variants = {
             primary:
-                'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 focus:ring-purple-500 shadow-md hover:shadow-lg',
+                'bg-purple-600 text-white hover:bg-purple-700 focus:ring-purple-500 shadow-md hover:shadow-lg',
             secondary:
                 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-gray-500',
             outline:
@@ -46,7 +46,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             ghost:
                 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:ring-gray-500',
             danger:
-                'bg-gradient-to-r from-red-600 to-pink-600 text-white hover:from-red-700 hover:to-pink-700 focus:ring-red-500 shadow-md hover:shadow-lg',
+                'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-md hover:shadow-lg',
         };
 
         const sizes = {
@@ -74,16 +74,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                     {...props}
                 >
                     {isLoading ? (
-                        <>
+                        <span className="flex items-center gap-2">
                             <Loader2 className="w-4 h-4 animate-spin" />
                             <span>Chargement...</span>
-                        </>
+                        </span>
                     ) : (
-                        <>
+                        <span className="flex items-center gap-2">
                             {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
-                            {children}
+                            <span>{children}</span>
                             {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
-                        </>
+                        </span>
                     )}
                 </button>
             </motion.div>

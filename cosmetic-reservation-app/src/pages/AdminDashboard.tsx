@@ -1,7 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useReservationStore } from '../state/reservationStore';
-import { useReservationStats } from '../state/reservationStore';
+import { useReservationStore, useReservationStats } from '../state/reservationStore';
 import ReservationTable from '../components/admin/ReservationTable';
 import StatsDashboard from '../components/admin/StatsDashboard';
 import { ReservationStatus } from '../types/reservation';
@@ -18,14 +17,23 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard = () => {
-    const reservations = useReservationStore((state) => state.reservations);
-    const updateReservationStatus = useReservationStore((state) => state.updateReservationStatus);
-    const deleteReservation = useReservationStore((state) => state.deleteReservation);
+    const {
+        reservations,
+        isLoading,
+        fetchReservations,
+        fetchStats,
+        updateReservationStatus
+    } = useReservationStore();
+
     const stats = useReservationStats();
 
     const [activeTab, setActiveTab] = useState<'overview' | 'reservations'>('overview');
     const [timeFilter, setTimeFilter] = useState('today');
-    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    useEffect(() => {
+        fetchReservations();
+        fetchStats();
+    }, [fetchReservations, fetchStats]);
 
     const handleStatusChange = async (id: string, newStatus: ReservationStatus) => {
         await updateReservationStatus(id, newStatus);
@@ -33,14 +41,13 @@ const AdminDashboard = () => {
 
     const handleDelete = async (id: string) => {
         if (window.confirm('Êtes-vous sûr de vouloir supprimer cette réservation ?')) {
-            await deleteReservation(id);
+            // await deleteReservation(id); // Non implémenté côté API description
+            console.warn("Delete not implemented in API");
         }
     };
 
     const handleRefresh = async () => {
-        setIsRefreshing(true);
-        // Simuler un rafraîchissement
-        setTimeout(() => setIsRefreshing(false), 1000);
+        await Promise.all([fetchReservations(), fetchStats()]);
     };
 
     // Statistiques rapides

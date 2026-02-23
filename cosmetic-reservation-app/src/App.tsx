@@ -1,13 +1,20 @@
 // src/App.tsx - Version simplifiée et moderne
+// Force refresh
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ThemeProvider } from './contexts/ThemeContext';
-import Home from './pages/Home';
-import CatalogPage from './pages/CatalogPage';
-import AddReservation from './pages/AddReservation';
-import ReservationPage from './pages/ReservationPage';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminLayout from './components/layout/AdminLayout';
+import { HomePage as Home } from './features/home/pages/HomePage';
+import { CatalogPage } from './features/products/pages/CatalogPage';
+import { ReservationPage } from './features/reservations/pages/ReservationPage';
+import { LoginPage } from './features/auth/pages/LoginPage';
+import { AccessDenied } from './features/auth/pages/AccessDenied';
+import { ProtectedRoute } from './features/auth/components/ProtectedRoute';
+import { UserRole } from './features/auth/types/auth.types';
+import { AdminLayout } from './shared/components/layout/AdminLayout';
+import { AdminDashboard, ReservationsListPage, CustomersPage, AnalyticsPage, UsersPage, ProductsPage } from './features/admin/pages';
+import { AddReservationPage } from './features/reservations/pages/AddReservationPage';
+import { NotificationsPage } from './features/notifications/pages';
+import { SettingsPage } from './features/settings/pages';
 
 function App() {
   return (
@@ -21,16 +28,26 @@ function App() {
               <Route path="/catalog" element={<CatalogPage />} />
               <Route path="/reserve" element={<ReservationPage />} />
               <Route path="/reserve/:productId" element={<ReservationPage />} />
-              <Route path="/add" element={<AddReservation />} />
+              <Route path="/add" element={<AddReservationPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/access-denied" element={<AccessDenied />} />
 
               {/* Routes admin */}
-              <Route path="/admin/*" element={
-                <AdminLayout>
-                  <Routes>
-                    <Route index element={<AdminDashboard />} />
-                  </Routes>
-                </AdminLayout>
-              } />
+              <Route path="/admin" element={
+                <ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }>
+                <Route index element={<AdminDashboard />} />
+                <Route path="reservations" element={<ReservationsListPage />} />
+                <Route path="customers" element={<CustomersPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="products" element={<ProductsPage />} />
+                <Route path="add" element={<AddReservationPage />} />
+                <Route path="users" element={<UsersPage />} />
+              </Route>
 
               {/* 404 */}
               <Route path="*" element={

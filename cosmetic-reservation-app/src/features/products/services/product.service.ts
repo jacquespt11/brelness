@@ -108,10 +108,10 @@ function mapResponseToProduct(dto: ProductResponseDTO): Product {
         id: dto.id,
         name: dto.name,
         description: dto.description,
-        price: dto.price,
+        price: Number(dto.price),   // Prisma Decimal comes as string over JSON
         category: dto.category,
         imageUrl: dto.imageUrl,
-        stock: dto.stock,
+        stock: Number(dto.stock),   // ensure it's a number
         isActive: dto.isActive,
         createdAt: dto.createdAt,
         updatedAt: dto.updatedAt,

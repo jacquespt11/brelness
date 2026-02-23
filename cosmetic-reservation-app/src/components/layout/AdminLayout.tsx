@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '../../contexts/ThemeContext';
 import Logo from '../ui/Logo';
+import ActionNotifications from '../admin/ActionNotifications';
 import {
     Home,
     Package,
@@ -418,6 +419,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                         {children}
                     </div>
                 </main>
+
+                {/* Notifications Globales */}
+                <ActionNotifications />
             </div>
         </div>
     );

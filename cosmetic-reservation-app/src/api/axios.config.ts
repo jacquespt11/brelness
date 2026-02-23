@@ -1,20 +1,6 @@
 // src/api/axios.config.ts
-import axios from 'axios';
+// Compatibility layer for non-feature services
+import { apiClient as api } from '@/core/api/axios.config';
 
-const API_BASE_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3000/api';
-
-export const api = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-});
-
-// Intercepteur pour ajouter le token
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
+export { api };
+export default api;

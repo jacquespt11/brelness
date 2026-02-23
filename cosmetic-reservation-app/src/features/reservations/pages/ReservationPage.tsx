@@ -6,6 +6,8 @@ import { useReservationStore } from '../store/reservationStore';
 import { ReservationForm, ReservationSuccess, ProductPreview } from '../components';
 import { ROUTES } from '@/shared/constants/routes';
 import { Spinner } from '@/shared/components/ui';
+import { useProductStore } from '@/features/products/store/productStore';
+import type { Product } from '@/features/products/types/product.types';
 
 /**
  * Reservation Page (Customer facing)
@@ -14,17 +16,9 @@ import { Spinner } from '@/shared/components/ui';
 export function ReservationPage() {
     const { productId } = useParams<{ productId?: string }>();
     const navigate = useNavigate();
-    const getReservationById = useReservationStore((state) => state.getReservationById); // Wait, this is for reservations
-    // I need product from somewhere. In the old store it was products.
-    // Let's check products store.
-    const products = useReservationStore((state) => (state as any).products) || []; // Using any for now to avoid types conflict until I check products store
+    const { getProductById, fetchProductById } = useProductStore();
 
-    // In fact, the unified store I saw earlier had:
-    // reservations: Reservation[];
-    // MOCK_PRODUCTS is exported from the file but not in state?
-    // Let's re-read reservationStore.ts
-
-    const [product, setProduct] = useState<any>(null);
+    const [product, setProduct] = useState<Product | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [submittedClient, setSubmittedClient] = useState({ name: '', phone: '' });
     const [isLoading, setIsLoading] = useState(true);
@@ -32,23 +26,26 @@ export function ReservationPage() {
     useEffect(() => {
         const loadProduct = async () => {
             if (productId) {
-                // In the store I saw MOCK_PRODUCTS
-                // I need to know how to get products. 
-                // Previous CatalogPage migration used:
-                // const products = useReservationStore((state) => state.products);
-                // Wait, I should check the store again.
                 setIsLoading(true);
-                // Simulation for now
-                setTimeout(() => {
-                    // I'll fetch from a mocked list for now or find where products are stored
+                try {
+                    // Try to get from store first
+                    let p = getProductById(productId);
+                    if (!p) {
+                        // Otherwise fetch from API
+                        p = await fetchProductById(productId);
+                    }
+                    setProduct(p || null);
+                } catch (error) {
+                    console.error('Failed to load product:', error);
+                } finally {
                     setIsLoading(false);
-                }, 500);
+                }
             } else {
                 setIsLoading(false);
             }
         };
         loadProduct();
-    }, [productId]);
+    }, [productId, getProductById, fetchProductById]);
 
     const handleGoBack = () => {
         if (productId) {

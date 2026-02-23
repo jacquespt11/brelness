@@ -15,22 +15,19 @@ export const reservationService = {
     createReservation: (data: CreateReservationDTO) =>
         api.post<ReservationResponseDTO>('/reservations', data),
 
-    getProductReservations: (productId: string) =>
-        api.get<ReservationResponseDTO[]>(`/reservations/product/${productId}`),
+    getReservationById: (id: string) =>
+        api.get<ReservationResponseDTO>(`/reservations/${id}`),
 
     // Admin routes
     getAllReservations: (params?: ReservationQueryDTO) =>
-        api.get<ReservationResponseDTO[]>('/admin/reservations', { params }),
-
-    getReservationById: (id: string) =>
-        api.get<ReservationResponseDTO>(`/admin/reservations/${id}`),
+        api.get<ReservationResponseDTO[]>('/reservations', { params }),
 
     updateReservationStatus: (id: string, data: UpdateReservationDTO) =>
-        api.patch<ReservationResponseDTO>(`/admin/reservations/${id}/status`, data),
+        api.patch<ReservationResponseDTO>(`/reservations/${id}`, data),
 
     deleteReservation: (id: string) =>
-        api.delete<void>(`/admin/reservations/${id}`),
+        api.delete<void>(`/reservations/${id}`),
 
     getReservationStats: () =>
-        api.get<ReservationStatsDTO>('/admin/reservations/stats'),
+        api.get<ReservationStatsDTO>('/reservations/stats'),
 };

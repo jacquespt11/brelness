@@ -1,5 +1,5 @@
 // src/features/admin/pages/AdminDashboard.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReservationStore, useReservationStats } from '@/features/reservations/store/reservationStore';
 import { ReservationTable, StatsDashboard } from '../components';
@@ -21,12 +21,19 @@ import { ROUTES } from '@/shared/constants/routes';
 export function AdminDashboard() {
     const navigate = useNavigate();
     const reservations = useReservationStore((state) => state.reservations);
+    const fetchReservations = useReservationStore((state) => state.fetchReservations);
     const updateReservationStatus = useReservationStore((state) => state.updateReservationStatus);
     const deleteReservation = useReservationStore((state) => state.deleteReservation);
     const stats = useReservationStats();
 
     const [activeTab, setActiveTab] = useState<'overview' | 'reservations'>('overview');
     const [isRefreshing, setIsRefreshing] = useState(false);
+
+    useEffect(() => {
+        if (reservations.length === 0) {
+            fetchReservations();
+        }
+    }, [fetchReservations, reservations.length]);
 
     const handleStatusChange = async (id: string, newStatus: string) => {
         await updateReservationStatus(id, newStatus as any);
@@ -111,14 +118,14 @@ export function AdminDashboard() {
             </div>
 
             {/* Content Area */}
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" initial={false}>
                 {activeTab === 'overview' ? (
                     <motion.div
                         key="overview"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.4 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
                     >
                         <StatsDashboard stats={stats} />
                     </motion.div>
@@ -128,7 +135,7 @@ export function AdminDashboard() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.4 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="space-y-6"
                     >
                         {/* List Filters Bar */}

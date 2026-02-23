@@ -1,10 +1,12 @@
 // src/core/api/axios.config.ts
 
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import { APP_CONFIG } from '@/shared/constants/config';
 
 /**
- * Axios instance configuration
+ * Expert level Axios instance configuration
+ * Centralized for all feature-based services
  */
 export const apiClient: AxiosInstance = axios.create({
     baseURL: APP_CONFIG.api.baseUrl,
@@ -16,12 +18,11 @@ export const apiClient: AxiosInstance = axios.create({
 
 /**
  * Request interceptor
- * Adds authentication token to requests
+ * Automatically adds authentication token from Zustand store
  */
 apiClient.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        // Get token from localStorage (will be replaced with proper auth later)
-        const token = localStorage.getItem('auth_token');
+        const token = useAuthStore.getState().token;
 
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -36,47 +37,29 @@ apiClient.interceptors.request.use(
 
 /**
  * Response interceptor
- * Handles errors globally
+ * Handles global error states (401, 403, 500)
  */
 apiClient.interceptors.response.use(
     (response) => {
         return response;
     },
     (error: AxiosError) => {
-        // Handle different error status codes
-        if (error.response) {
-            switch (error.response.status) {
-                case 401:
-                    // Unauthorized - clear token and redirect to login
-                    localStorage.removeItem('auth_token');
-                    // TODO: Redirect to login page
-                    console.error('Unauthorized - please login');
-                    break;
+        const status = error.response?.status;
+        const message = (error.response?.data as any)?.message || error.message;
 
-                case 403:
-                    // Forbidden
-                    console.error('Access forbidden');
-                    break;
+        if (status === 401) {
+            // Unauthorized - clear state and redirect
+            useAuthStore.getState().logout();
+            window.location.href = '/login';
+        }
 
-                case 404:
-                    // Not found
-                    console.error('Resource not found');
-                    break;
+        if (status === 403) {
+            console.error('Expert API Error [403]: Accès non autorisé -', message);
+            // Can be handled by components to show specific UI feedback
+        }
 
-                case 500:
-                    // Server error
-                    console.error('Server error - please try again later');
-                    break;
-
-                default:
-                    console.error('An error occurred:', error.message);
-            }
-        } else if (error.request) {
-            // Request made but no response received
-            console.error('Network error - please check your connection');
-        } else {
-            // Something else happened
-            console.error('Error:', error.message);
+        if (status >= 500) {
+            console.error('Expert API Error [500]: Erreur Serveur -', message);
         }
 
         return Promise.reject(error);
@@ -84,16 +67,19 @@ apiClient.interceptors.response.use(
 );
 
 /**
- * Helper function to handle API errors
+ * Helper function to handle API errors for services
  */
 export function handleApiError(error: unknown): string {
     if (axios.isAxiosError(error)) {
         if (error.response?.data?.message) {
+            if (Array.isArray(error.response.data.message)) {
+                return error.response.data.message.join(', ');
+            }
             return error.response.data.message;
         }
-        if (error.message) {
-            return error.message;
-        }
+        return error.message || 'Une erreur API s\'est produite';
     }
     return 'Une erreur inattendue s\'est produite';
 }
+
+export default apiClient;

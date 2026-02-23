@@ -4,6 +4,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Logo } from '@/shared/components/ui';
 import { useTheme } from '@/core/contexts/ThemeContext';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { UserRole } from '@/features/auth/types/auth.types';
 import { ROUTES } from '@/shared/constants/routes';
 import {
     Home,
@@ -29,6 +31,9 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, isOpen }: Sideb
     const location = useLocation();
     const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
+    const { user } = useAuthStore();
+
+    const title = user?.role === UserRole.SUPER_ADMIN ? 'Super Admin' : 'Admin';
 
     const navItems = [
         { path: ROUTES.ADMIN, icon: Home, label: 'Tableau de bord' },
@@ -37,6 +42,10 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, isOpen }: Sideb
         { path: '/admin/customers', icon: Users, label: 'Clients' },
         { path: '/admin/analytics', icon: BarChart3, label: 'Analytiques', badge: 'New' },
     ];
+
+    if (user?.role === UserRole.SUPER_ADMIN) {
+        navItems.push({ path: ROUTES.ADMIN_USERS, icon: Users, label: 'Utilisateurs' });
+    }
 
     const secondaryItems = [
         { path: ROUTES.ADD_RESERVATION, icon: PlusCircle, label: 'Nouvelle réservation' },
@@ -63,16 +72,16 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, isOpen }: Sideb
                 <div className={cn("flex items-center", isCollapsed && !isMobile ? "justify-center" : "justify-between")}>
                     {isFullSidebar ? (
                         <Link to={ROUTES.ADMIN} className="flex items-center space-x-3 group">
-                            <Logo size="sm" />
+                            <Logo size="sm" noLink />
                             <div className="hidden md:block">
-                                <h1 className="text-lg font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                    Admin
+                                <h1 className="text-lg font-black text-purple-600">
+                                    {title}
                                 </h1>
                                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 dark:text-gray-500">Brelness v1.0</p>
                             </div>
                         </Link>
                     ) : (
-                        <Logo size="sm" />
+                        <Logo size="sm" noLink />
                     )}
 
                     {!isMobile && (

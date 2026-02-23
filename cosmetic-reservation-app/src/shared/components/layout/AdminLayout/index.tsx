@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { ActionNotifications } from '@/features/admin/components';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export function AdminLayout() {
@@ -71,6 +72,9 @@ export function AdminLayout() {
                     </main>
                 </div>
             </div>
+
+            {/* Action Notifications */}
+            <ActionNotifications />
 
             {/* Mobile Overlay */}
             <AnimatePresence>

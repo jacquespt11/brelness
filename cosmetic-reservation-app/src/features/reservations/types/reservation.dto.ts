@@ -13,11 +13,11 @@ import type { ReservationStatus, Source } from '@/shared/types/common.types';
 export interface CreateReservationDTO {
     customerName: string;
     customerPhone: string;
-    customerEmail: string;
+    customerEmail?: string;
     productId: string;
     quantity: number;
     productName?: string;
-    productPrice: number;
+    productPrice?: number;
     productCategory?: string;
     preferredDeliveryDate?: string;
     notes?: string;

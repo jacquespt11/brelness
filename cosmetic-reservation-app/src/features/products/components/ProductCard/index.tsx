@@ -19,11 +19,12 @@ interface ProductCardProps {
 export function ProductCard({ product, onClick, className }: ProductCardProps) {
     const getCategoryColor = (category: string) => {
         const colors = {
-            FACE_CARE: 'purple',
+            FACIAL_CARE: 'purple',
             MAKEUP: 'error',
             PERFUME: 'info',
             BODY_CARE: 'success',
             HAIR_CARE: 'warning',
+            OTHER: 'default',
         };
         return (colors[category as keyof typeof colors] || 'default') as
             | 'success'
@@ -36,22 +37,24 @@ export function ProductCard({ product, onClick, className }: ProductCardProps) {
 
     const getCategoryIcon = (category: string) => {
         const icons = {
-            FACE_CARE: '✨',
+            FACIAL_CARE: '✨',
             MAKEUP: '💄',
             PERFUME: '🌸',
             BODY_CARE: '🧴',
             HAIR_CARE: '🧖‍♀️',
+            OTHER: '📦',
         };
         return icons[category as keyof typeof icons] || '📦';
     };
 
     const getCategoryLabel = (category: string) => {
         const labels = {
-            FACE_CARE: 'Soin Visage',
+            FACIAL_CARE: 'Soin Visage',
             MAKEUP: 'Maquillage',
             PERFUME: 'Parfum',
             BODY_CARE: 'Soin Corps',
             HAIR_CARE: 'Soin Cheveux',
+            OTHER: 'Autre',
         };
         return labels[category as keyof typeof labels] || category;
     };

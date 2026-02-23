@@ -25,11 +25,12 @@ export const DESIGN = {
     },
 
     // Gradients
+    // Gradients (now using solid colors as requested)
     gradients: {
-        primary: 'from-purple-600 to-pink-600',
-        secondary: 'from-blue-600 to-purple-600',
-        success: 'from-green-500 to-emerald-600',
-        danger: 'from-red-500 to-pink-600',
+        primary: 'bg-purple-600',
+        secondary: 'bg-blue-600',
+        success: 'bg-green-500',
+        danger: 'bg-red-500',
     },
 
     // Animations

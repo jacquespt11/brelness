@@ -108,18 +108,24 @@ export const useProductStore = create<ProductStore>((set, get) => ({
         try {
             const product = await productService.getById(id);
 
-            // Update products list if needed
-            const currentProducts = get().products;
-            const productExists = currentProducts.some(p => p.id === id);
+            // Update products list
+            set(state => {
+                const productExists = state.products.some(p => p.id === id);
+                const updatedProducts = productExists
+                    ? state.products.map(p => p.id === id ? product : p)
+                    : [product, ...state.products];
 
-            if (!productExists) {
-                set(state => ({
-                    products: [product, ...state.products],
-                    filteredProducts: [product, ...state.filteredProducts],
-                }));
-            }
+                const updatedFiltered = productExists
+                    ? state.filteredProducts.map(p => p.id === id ? product : p)
+                    : [product, ...state.filteredProducts];
 
-            set({ loading: false });
+                return {
+                    products: updatedProducts,
+                    filteredProducts: updatedFiltered,
+                    loading: false
+                };
+            });
+
             return product;
         } catch (error) {
             const errorMessage = error instanceof Error
@@ -348,12 +354,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
  * Hook for popular products
  */
 export const usePopularProducts = () => {
-    const { products, fetchProducts } = useProductStore();
-
-    // Fetch products if not already loaded
-    if (products.length === 0) {
-        fetchProducts().catch(console.error);
-    }
+    const { products } = useProductStore();
 
     const popularProducts = [...products]
         .filter(p => p.isActive !== false)
@@ -366,12 +367,7 @@ export const usePopularProducts = () => {
  * Hook for featured products (top 4)
  */
 export const useFeaturedProducts = () => {
-    const { products, fetchProducts } = useProductStore();
-
-    // Fetch products if not already loaded
-    if (products.length === 0) {
-        fetchProducts().catch(console.error);
-    }
+    const { products } = useProductStore();
 
     const featuredProducts = [...products]
         .filter(p => p.isActive !== false)

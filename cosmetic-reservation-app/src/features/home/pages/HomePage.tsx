@@ -5,10 +5,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle, AlertCircle, ShoppingBag, Phone } from 'lucide-react';
 import { useProductStore } from '@/features/products/store/productStore';
-import { reservationService } from '@/api/reservation.service';
+import { useReservationStore } from '@/features/reservations/store/reservationStore';
 import { Button, Input } from '@/shared/components/ui';
 import { ROUTES } from '@/shared/constants/routes';
-import type { CreateReservationDTO } from '@/features/reservations/types/reservation.dto';
 
 /**
  * Public Reservation Page
@@ -29,6 +28,7 @@ export function HomePage() {
     const [error, setError] = useState<string | null>(null);
 
     const { fetchProductById, getProductById, loading: productLoading } = useProductStore();
+    const addReservation = useReservationStore(state => state.addReservation);
     const product = productId ? getProductById(productId) : null;
 
     // Fetch product on mount if not in store
@@ -82,7 +82,8 @@ export function HomePage() {
         setError(null);
 
         try {
-            const reservationData: CreateReservationDTO = {
+            // Use the reservation store which handles field stripping
+            await addReservation({
                 productId,
                 customerName: formData.customerName,
                 customerPhone: formData.customerPhone,
@@ -90,11 +91,9 @@ export function HomePage() {
                 quantity: formData.quantity,
                 productName: product.name,
                 productPrice: product.price,
+                productCategory: product.category,
                 source: 'FACEBOOK',
-            };
-
-            // Use the reservation service
-            await reservationService.createReservation(reservationData);
+            });
 
             // Success
             setIsSuccess(true);
@@ -122,10 +121,10 @@ export function HomePage() {
     // Loading state
     if (productLoading && !product) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Chargement du produit...</p>
+                    <p className="text-gray-600 dark:text-gray-400">Chargement du produit...</p>
                 </div>
             </div>
         );
@@ -134,11 +133,11 @@ export function HomePage() {
     // Error state (product not found)
     if (error && !product) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 p-4">
-                <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-6 text-center">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800 p-4">
+                <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center">
                     <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">Produit non trouvé</h2>
-                    <p className="text-gray-600 mb-6">{error}</p>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Produit non trouvé</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
                     <div className="flex flex-col sm:flex-row gap-3">
                         <Link to={ROUTES.CATALOG} className="flex-1">
                             <Button variant="primary" fullWidth>
@@ -161,21 +160,21 @@ export function HomePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-800">
             {/* Simple Header */}
-            <header className="sticky top-0 z-50 backdrop-blur-md bg-white/95 border-b border-gray-200/50">
+            <header className="sticky top-0 z-50 backdrop-blur-md bg-white/95 dark:bg-gray-900/90 border-b border-gray-200/50 dark:border-gray-700/50">
                 <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between h-16">
                         <Link
                             to={ROUTES.CATALOG}
-                            className="flex items-center space-x-2 text-gray-700 hover:text-purple-600 transition-colors"
+                            className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
                         >
                             <ArrowLeft className="w-5 h-5" />
                             <span className="font-medium">Voir tous les produits</span>
                         </Link>
 
                         <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-500">Besoin d'aide?</span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Besoin d'aide?</span>
                             <a
                                 href={`tel:${'0123456789'}`}
                                 className="flex items-center space-x-1 text-purple-600 hover:text-purple-700"
@@ -198,7 +197,7 @@ export function HomePage() {
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Product Image */}
-                            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
                                 {product?.imageUrl ? (
                                     <img
                                         src={product.imageUrl}
@@ -216,7 +215,7 @@ export function HomePage() {
                             <div className="space-y-4">
                                 <div>
                                     <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium mb-2">
-                                        {product?.category}
+                                        {product?.category?.replace('_', ' ')}
                                     </span>
                                     <h1 className="text-3xl font-bold text-gray-900 mb-2">
                                         {product?.name}
@@ -229,12 +228,12 @@ export function HomePage() {
                                         <span className="text-2xl font-bold text-purple-600">
                                             {product?.price.toFixed(2)} €
                                         </span>
-                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${product?.stock && product.stock > 0
+                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${(product?.stock ?? 0) > 0
                                             ? 'bg-green-100 text-green-800'
                                             : 'bg-red-100 text-red-800'
                                             }`}>
-                                            {product?.stock && product.stock > 0
-                                                ? `${product.stock} disponibles`
+                                            {(product?.stock ?? 0) > 0
+                                                ? `${product?.stock} disponibles`
                                                 : 'Rupture de stock'
                                             }
                                         </span>
@@ -255,7 +254,7 @@ export function HomePage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="bg-white rounded-2xl shadow-lg p-6 md:p-8"
+                        className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 md:p-8"
                     >
                         {isSuccess ? (
                             <div className="text-center py-8">
@@ -295,7 +294,7 @@ export function HomePage() {
                             </div>
                         ) : (
                             <>
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                                     Réserver ce produit
                                 </h2>
 
@@ -304,7 +303,7 @@ export function HomePage() {
                                         <div>
                                             <label
                                                 htmlFor="customerName"
-                                                className="block text-sm font-medium text-gray-700 mb-2"
+                                                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                                             >
                                                 Nom complet *
                                             </label>
@@ -316,14 +315,14 @@ export function HomePage() {
                                                 value={formData.customerName}
                                                 onChange={handleInputChange}
                                                 placeholder="Votre nom"
-                                                disabled={isSubmitting || !product?.stock}
+                                                disabled={isSubmitting || product?.stock === 0}
                                                 className="w-full"
                                             />
                                         </div>
                                         <div>
                                             <label
                                                 htmlFor="customerPhone"
-                                                className="block text-sm font-medium text-gray-700 mb-2"
+                                                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                                             >
                                                 Téléphone *
                                             </label>
@@ -335,14 +334,14 @@ export function HomePage() {
                                                 value={formData.customerPhone}
                                                 onChange={handleInputChange}
                                                 placeholder="Votre numéro de téléphone"
-                                                disabled={isSubmitting || !product?.stock}
+                                                disabled={isSubmitting || product?.stock === 0}
                                                 className="w-full"
                                             />
                                         </div>
                                         <div>
                                             <label
                                                 htmlFor="customerEmail"
-                                                className="block text-sm font-medium text-gray-700 mb-2"
+                                                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                                             >
                                                 Email *
                                             </label>
@@ -354,14 +353,14 @@ export function HomePage() {
                                                 value={formData.customerEmail}  // Mettez à jour ici
                                                 onChange={handleInputChange}
                                                 placeholder="Votre email"
-                                                disabled={isSubmitting || !product?.stock}
+                                                disabled={isSubmitting || product?.stock === 0}
                                                 className="w-full"
                                             />
                                         </div>
                                         <div>
                                             <label
                                                 htmlFor="quantity"
-                                                className="block text-sm font-medium text-gray-700 mb-2"
+                                                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                                             >
                                                 Quantité *
                                             </label>
@@ -374,10 +373,10 @@ export function HomePage() {
                                                 required
                                                 value={formData.quantity}
                                                 onChange={handleInputChange}
-                                                disabled={isSubmitting || !product?.stock}
+                                                disabled={isSubmitting || product?.stock === 0}
                                                 className="w-full"
                                             />
-                                            {product?.stock && (
+                                            {product?.stock !== undefined && product.stock > 0 && (
                                                 <p className="mt-1 text-sm text-gray-500">
                                                     Quantité disponible : {product.stock}
                                                 </p>
@@ -395,7 +394,7 @@ export function HomePage() {
                                     )}
 
                                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
                                             * Champs obligatoires. Aucun paiement requis maintenant.
                                         </p>
                                         <Button
@@ -429,23 +428,23 @@ export function HomePage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="mt-8 p-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl"
+                        className="mt-8 p-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl"
                     >
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                             <div>
                                 <div className="text-2xl mb-2">📞</div>
-                                <h4 className="font-bold text-gray-800 mb-1">Confirmation rapide</h4>
-                                <p className="text-sm text-gray-600">Appel sous 24h pour confirmer</p>
+                                <h4 className="font-bold text-gray-800 dark:text-white mb-1">Confirmation rapide</h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Appel sous 24h pour confirmer</p>
                             </div>
                             <div>
                                 <div className="text-2xl mb-2">🛡️</div>
-                                <h4 className="font-bold text-gray-800 mb-1">Sans engagement</h4>
-                                <p className="text-sm text-gray-600">Réservation gratuite, aucun paiement</p>
+                                <h4 className="font-bold text-gray-800 dark:text-white mb-1">Sans engagement</h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Réservation gratuite, aucun paiement</p>
                             </div>
                             <div>
                                 <div className="text-2xl mb-2">🚚</div>
-                                <h4 className="font-bold text-gray-800 mb-1">Livraison flexible</h4>
-                                <p className="text-sm text-gray-600">Modalités convenues ensemble</p>
+                                <h4 className="font-bold text-gray-800 dark:text-white mb-1">Livraison flexible</h4>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Modalités convenues ensemble</p>
                             </div>
                         </div>
                     </motion.div>
@@ -457,7 +456,7 @@ export function HomePage() {
                         transition={{ delay: 0.6 }}
                         className="mt-8 text-center"
                     >
-                        <p className="text-gray-600 mb-4">Partagez cette page avec vos amis :</p>
+                        <p className="text-gray-600 dark:text-gray-400 mb-4">Partagez cette page avec vos amis :</p>
                         <div className="flex justify-center space-x-4">
                             <a
                                 href={`https://wa.me/?text=${encodeURIComponent(
@@ -483,14 +482,14 @@ export function HomePage() {
             </main>
 
             {/* Simple Footer */}
-            <footer className="mt-12 border-t border-gray-200/50 py-6">
+            <footer className="mt-12 border-t border-gray-200/50 dark:border-gray-700/50 py-6">
                 <div className="container mx-auto px-4">
                     <div className="flex flex-col md:flex-row justify-between items-center">
                         <div className="mb-4 md:mb-0">
-                            <h3 className="font-bold text-lg text-gray-800">Brelness</h3>
-                            <p className="text-sm text-gray-500">Réservation de produits cosmétiques</p>
+                            <h3 className="font-bold text-lg text-gray-800 dark:text-white">Brelness</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Réservation de produits cosmétiques</p>
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                             © {new Date().getFullYear()} Brelness. Tous droits réservés.
                         </div>
                     </div>

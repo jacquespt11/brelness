@@ -11,20 +11,17 @@ export const productService = {
     getProductById: (id: string) =>
         api.get(`/products/${id}`),
 
-    getPopularProducts: () =>
-        api.get('/products/popular'),
-
-    // Admin routes
+    // Admin/Auth routes
     createProduct: (data: FormData) =>
-        api.post('/admin/products', data, {
+        api.post('/products', data, {
             headers: { 'Content-Type': 'multipart/form-data' },
         }),
 
     updateProduct: (id: string, data: FormData) =>
-        api.put(`/admin/products/${id}`, data, {
+        api.patch(`/products/${id}`, data, {
             headers: { 'Content-Type': 'multipart/form-data' },
         }),
 
     deleteProduct: (id: string) =>
-        api.delete(`/admin/products/${id}`),
+        api.delete(`/products/${id}`),
 };

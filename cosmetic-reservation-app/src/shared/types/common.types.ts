@@ -21,12 +21,12 @@ export type ReservationStatus =
     | 'DELIVERED';
 
 export type ProductCategory =
-    | 'facial_care'
-    | 'body_care'
-    | 'hair_care'
-    | 'makeup'
-    | 'perfume'
-    | 'other';
+    | 'FACIAL_CARE'
+    | 'BODY_CARE'
+    | 'HAIR_CARE'
+    | 'MAKEUP'
+    | 'PERFUME'
+    | 'OTHER';
 
 /**
  * API Response wrapper

@@ -62,7 +62,16 @@ export function ConfirmationStep({ formData, selectedProduct, totalPrice }: Conf
                             <>
                                 <p className="font-bold text-gray-800 dark:text-white">{formData.productName}</p>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    Catégorie: {formData.productCategory}
+                                    Catégorie: {(() => {
+                                        switch (formData.productCategory) {
+                                            case 'FACIAL_CARE': return 'Soin visage';
+                                            case 'BODY_CARE': return 'Soin corps';
+                                            case 'HAIR_CARE': return 'Soin cheveux';
+                                            case 'MAKEUP': return 'Maquillage';
+                                            case 'PERFUME': return 'Parfum';
+                                            default: return formData.productCategory;
+                                        }
+                                    })()}
                                 </p>
                             </>
                         ) : (
