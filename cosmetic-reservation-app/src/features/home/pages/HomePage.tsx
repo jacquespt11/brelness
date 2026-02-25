@@ -176,7 +176,7 @@ export function HomePage() {
                         <div className="flex items-center space-x-2">
                             <span className="text-sm text-gray-500 dark:text-gray-400">Besoin d'aide?</span>
                             <a
-                                href={`tel:${'0123456789'}`}
+                                href={`tel:${'0826918783'}`}
                                 className="flex items-center space-x-1 text-purple-600 hover:text-purple-700"
                             >
                                 <Phone className="w-4 h-4" />
@@ -217,7 +217,7 @@ export function HomePage() {
                                     <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium mb-2">
                                         {product?.category?.replace('_', ' ')}
                                     </span>
-                                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                                         {product?.name}
                                     </h1>
                                     <p className="text-gray-600 mb-4">{product?.description}</p>
