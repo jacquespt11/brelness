@@ -338,10 +338,11 @@ function UsersPageContent() {
                                     value={formData.role}
                                     onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
                                     className="w-full"
-                                >
-                                    <option value={UserRole.ADMIN}>Administrateur</option>
-                                    <option value={UserRole.SUPER_ADMIN}>Super Administrateur</option>
-                                </Select>
+                                    options={[
+                                        { value: UserRole.ADMIN, label: 'Administrateur' },
+                                        { value: UserRole.SUPER_ADMIN, label: 'Super Administrateur' },
+                                    ]}
+                                />
                             </div>
                         </div>
                     </ModalBody>
