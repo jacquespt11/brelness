@@ -196,7 +196,7 @@ export function MultiStepReservationForm({ onSuccess }: MultiStepReservationForm
                             variant="primary"
                             isLoading={isSubmitting}
                             disabled={!selectedProduct || isSubmitting}
-                            leftIcon={!isSubmitting && <Check size={20} />}
+                            leftIcon={isSubmitting ? undefined : <Check size={20} />}
                             className="bg-gradient-to-r from-green-600 to-emerald-600 border-none px-8"
                         >
                             {isSubmitting ? 'Envoi en cours...' : 'Confirmer'}

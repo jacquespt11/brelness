@@ -56,37 +56,33 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         };
 
         return (
-            <motion.div
+            <motion.button
+                ref={ref}
                 whileHover={{ scale: disabled || isLoading ? 1 : 1.02 }}
                 whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
-                className="inline-block"
+                className={cn(
+                    baseStyles,
+                    variants[variant],
+                    sizes[size],
+                    fullWidth && 'w-full',
+                    className
+                )}
+                disabled={disabled || isLoading}
+                {...props}
             >
-                <button
-                    ref={ref}
-                    className={cn(
-                        baseStyles,
-                        variants[variant],
-                        sizes[size],
-                        fullWidth && 'w-full',
-                        className
-                    )}
-                    disabled={disabled || isLoading}
-                    {...props}
-                >
-                    {isLoading ? (
-                        <span className="flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Chargement...</span>
-                        </span>
-                    ) : (
-                        <span className="flex items-center gap-2">
-                            {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
-                            <span>{children}</span>
-                            {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
-                        </span>
-                    )}
-                </button>
-            </motion.div>
+                {isLoading ? (
+                    <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Chargement...</span>
+                    </span>
+                ) : (
+                    <span className="flex items-center gap-2">
+                        {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
+                        <span>{children}</span>
+                        {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
+                    </span>
+                )}
+            </motion.button>
         );
     }
 );
