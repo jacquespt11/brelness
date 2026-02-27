@@ -128,21 +128,9 @@ export function CatalogPage() {
                     <div className="flex items-center justify-between h-16 lg:h-20">
                         {/* Left section */}
                         <div className="flex items-center space-x-6">
-                            <motion.button
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                onClick={() => navigate(ROUTES.HOME)}
-                                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors group"
-                                whileHover={{ x: -5 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
-                                <ArrowLeft className="w-5 h-5" />
-                                <span className="font-medium hidden sm:inline">Accueil</span>
-                            </motion.button>
-
+                            
                             <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 hidden md:block" />
 
-                            <Logo size="sm" animated={false} showText />
                         </div>
 
                         {/* Mobile title */}

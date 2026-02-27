@@ -271,8 +271,7 @@ export function HomePage() {
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                                     <Link to={ROUTES.CATALOG}>
-                                        <Button variant="primary">
-                                            <ShoppingBag className="w-4 h-4 mr-2" />
+                                        <Button variant="primary" size="lg" className="min-w-[200px] border-2 border-purple-600 hover:border-purple-700 transition-colors">
                                             Voir d'autres produits
                                         </Button>
                                     </Link>
